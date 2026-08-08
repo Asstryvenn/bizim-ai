@@ -1,0 +1,70 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme (значения — исходная палитра проекта, в RGB для поддержки /opacity) */
+    --color-ink: 11 30 61;             /* #0B1E3D */
+    --color-paper: 255 255 255;        /* #FFFFFF — background */
+    --color-card: 255 255 255;         /* #FFFFFF — поверхность карточек */
+    --color-mist: 246 248 251;         /* #F6F8FB — muted */
+    --color-muted-foreground: 11 30 61;
+    --color-accent: 47 111 237;        /* #2F6FED — primary */
+    --color-accent-foreground: 255 255 255;
+    --color-accent-soft: 234 241 255;  /* #EAF1FF */
+    --color-border: 228 233 242;       /* #E4E9F2 */
+    --color-success: 22 163 74;        /* #16A34A */
+    --color-danger: 220 38 38;         /* #DC2626 */
+  }
+
+  .dark {
+    --color-ink: 226 232 240;          /* slate-200 текст */
+    --color-paper: 10 14 23;           /* глубокий тёмно-синий фон */
+    --color-card: 21 27 41;            /* чуть светлее фона — карточки */
+    --color-mist: 27 34 51;            /* приглушённые поверхности */
+    --color-muted-foreground: 148 163 184; /* slate-400 */
+    --color-accent: 79 140 255;        /* ярче для контраста на тёмном */
+    --color-accent-foreground: 10 14 23;
+    --color-accent-soft: 30 41 59;     /* мягкий акцентный фон */
+    --color-border: 41 51 71;
+    --color-success: 74 222 128;
+    --color-danger: 248 113 113;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background-color: theme("colors.accent-soft");
+  }
+  *:focus-visible {
+    outline: 2px solid theme("colors.accent");
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-card border border-border rounded-2xl shadow-card p-6 transition-colors;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-accent px-5 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl border border-border bg-card px-5 py-3 text-sm font-medium text-ink transition hover:bg-mist disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .input {
+    @apply w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink/40 focus:border-accent transition;
+  }
+  .label {
+    @apply block text-sm font-medium text-ink/70 mb-1.5;
+  }
+  .badge-danger {
+    @apply text-danger bg-danger/10 border border-danger/20;
+  }
+}

@@ -1,0 +1,612 @@
+{
+  "nav": {
+    "settings": "Settings",
+    "adminPanel": "Admin Panel",
+    "logout": "Log out"
+  },
+  "sidebar": {
+    "newChat": "New chat",
+    "searchPlaceholder": "Search chats...",
+    "pinned": "Pinned",
+    "recent": "Recent",
+    "noResults": "Nothing found",
+    "noChats": "No conversations yet",
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "rename": "Rename",
+    "share": "Share",
+    "delete": "Delete",
+    "confirmDelete": "Confirm delete?",
+    "timeJustNow": "just now",
+    "timeMinutesAgo": "{{count}}m ago",
+    "timeHoursAgo": "{{count}}h ago",
+    "timeYesterday": "yesterday",
+    "timeDaysAgo": "{{count}}d ago"
+  },
+  "chat": {
+    "newChatTitle": "New chat",
+    "share": "Share",
+    "download": "Download conversation",
+    "clear": "Clear conversation",
+    "offline": "⚠️ No internet connection — messages won't be delivered",
+    "onlineRestored": "Connection restored",
+    "loadError": "Failed to load conversation",
+    "loadErrorGeneric": "Error loading conversation",
+    "createError": "Failed to create conversation",
+    "createErrorGeneric": "Error creating conversation",
+    "responseError": "Failed to get a response (HTTP {{status}})",
+    "noStreamResponse": "The server didn't return a streamed response",
+    "interruptedResponse": "Response interrupted: {{reason}}",
+    "genericError": "Chat error. Check your connection and try again.",
+    "historyUpdateError": "Failed to update history on the server",
+    "waitSaving": "Please wait — the message is still saving",
+    "renameError": "Failed to rename chat",
+    "pinError": "Failed to pin chat",
+    "deleted": "Chat deleted",
+    "deleteError": "Failed to delete chat",
+    "genericErrorShort": "Error",
+    "cleared": "Conversation cleared",
+    "clearError": "Failed to clear conversation on the server",
+    "emptyExport": "There are no messages in this conversation yet",
+    "you": "You",
+    "composerPlaceholder": "Ask something about your business... (Enter to send, Shift+Enter for a new line)",
+    "disclaimer": "Bizim AI can make mistakes. Check important numbers.",
+    "stopGeneration": "Stop generating",
+    "send": "Send",
+    "uploadSoon": "File uploads in chat are coming soon 🚧",
+    "uploadDropHint": "📎 File uploads will be available here soon",
+    "welcomeTitle": "Welcome to Bizim AI",
+    "welcomeSubtitle": "I'll help you with «{{businessName}}» — from sales analysis to social media ideas. Ask anything or pick a prompt below.",
+    "prompts": {
+      "analyze": { "title": "Analyze my business", "text": "Analyze my business and give growth recommendations" },
+      "instagram": { "title": "Instagram post", "text": "Generate an Instagram post about a new promotion" },
+      "campaign": { "title": "Marketing campaign", "text": "Come up with a marketing campaign for next month" },
+      "sales": { "title": "Increase sales", "text": "What can I do to increase sales this week?" }
+    },
+    "aiTyping": "AI is typing",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyError": "Failed to copy",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "regenerate": "Regenerate",
+    "continue": "Continue response",
+    "goodResponse": "Good response",
+    "badResponse": "Bad response",
+    "retry": "Retry",
+    "codeCopied": "Code copied",
+    "codeCopyError": "Failed to copy",
+    "codeCopiedLabel": "Copied",
+    "codeCopyLabel": "Copy",
+    "codeFallbackLabel": "code",
+    "plainTextLabel": "Text"
+  },
+  "share": {
+    "title": "Share conversation",
+    "description": "Anyone with the link will be able to view this conversation in read-only mode — no sign-in required.",
+    "copyButton": "Copy",
+    "copied": "Link copied",
+    "copyError": "Failed to copy the link",
+    "disable": "Disable link access",
+    "disabling": "Disabling...",
+    "createButton": "Create public link",
+    "creating": "Creating link...",
+    "createError": "Failed to create the link",
+    "disableError": "Failed to disable access",
+    "close": "Close"
+  },
+  "settings": {
+    "personalTitle": "Personal details",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "emailHint": "Changing your email isn't supported yet",
+    "businessName": "Business name",
+    "save": "Save changes",
+    "saving": "Saving...",
+    "saved": "Changes saved",
+    "saveError": "Failed to save changes",
+    "language": {
+      "title": "Language",
+      "description": "Choose the interface language for the app."
+    },
+    "theme": {
+      "title": "Appearance",
+      "description": "Choose a light or dark theme.",
+      "ariaLabel": "Theme"
+    }
+  },
+  "validation": {
+    "firstNameRequired": "Enter your first name",
+    "lastNameRequired": "Enter your last name",
+    "emailInvalid": "Invalid email",
+    "passwordMin": "At least 6 characters",
+    "passwordRequired": "Enter your password",
+    "businessNameRequired": "Enter your business name",
+    "businessTypeRequired": "Select a business type",
+    "cityRequired": "Enter your city",
+    "workHoursFromRequired": "Enter the opening time",
+    "workHoursToRequired": "Enter the closing time"
+  },
+  "business": {
+    "types": {
+      "cafe": "Cafe / restaurant",
+      "shop": "Shop",
+      "salon": "Beauty salon",
+      "pharmacy": "Pharmacy",
+      "carwash": "Car wash",
+      "other": "Other"
+    }
+  },
+  "weekday": {
+    "sun": "Sunday",
+    "mon": "Monday",
+    "tue": "Tuesday",
+    "wed": "Wednesday",
+    "thu": "Thursday",
+    "fri": "Friday",
+    "sat": "Saturday",
+    "short": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    }
+  },
+  "theme": {
+    "enableLight": "Switch to light theme",
+    "enableDark": "Switch to dark theme",
+    "light": "Light theme",
+    "dark": "Dark theme"
+  },
+  "aiThinking": {
+    "title": "AI is analyzing...",
+    "steps": {
+      "sales": "Sales",
+      "averageCheck": "Average check",
+      "clients": "Clients",
+      "profit": "Profit",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "promotions": "Promotions",
+      "growth": "Growth"
+    }
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Interface language"
+  },
+  "fileParser": {
+    "unsupportedFormat": "Unsupported file format. Allowed: .csv, .xlsx, .xls, .json",
+    "csvParseError": "CSV parse error: {{message}} (row {{row}})",
+    "invalidJson": "The file is not valid JSON"
+  },
+  "dashboard": {
+    "businessNotFound": "Business profile not found",
+    "charts": {
+      "dailyTitle": "Daily trend",
+      "notEnoughDataImport": "Not enough data. Import a file with sales data.",
+      "revenueByWeekday": "Revenue by day of week",
+      "builtFromRows": "Built from {{count}} uploaded rows",
+      "notEnoughDataColumns": "Not enough data: the file has no date or revenue column.",
+      "totalRevenue": "Total revenue",
+      "totalClients": "Total clients",
+      "averageCheckComputed": "Average check (computed)",
+      "bestDay": "Best day",
+      "worstDay": "Weakest day",
+      "notEnoughData": "Not enough data",
+      "unknownDate": "unknown"
+    },
+    "card": {
+      "never": "not yet",
+      "employees": "Employees",
+      "clientsPerMonth": "Clients/month",
+      "averageCheck": "Average check",
+      "peakHours": "Peak hours",
+      "lastAnalysis": "Last AI analysis",
+      "updated": "Updated"
+    },
+    "hero": {
+      "welcome": "Welcome",
+      "subtitle": "Bizim AI helps analyze sales, create promotions, write Instagram posts, TikTok scripts, SMS campaigns, and recommendations for business growth.",
+      "aiChat": "AI Chat",
+      "newAnalysis": "New analysis",
+      "aiAnalysis": "AI Analysis",
+      "growthTools": "Growth Tools"
+    },
+    "history": {
+      "title": "Analysis history",
+      "subtitle": "Recently uploaded Excel and CSV files",
+      "empty": "No analyses yet",
+      "analysisComplete": "Analysis complete"
+    },
+    "stats": {
+      "title": "Business analytics",
+      "sales": "Sales",
+      "clients": "Clients",
+      "averageCheck": "Average check",
+      "growth": "Growth",
+      "importExcel": "Import Excel"
+    }
+  },
+  "aiDashboard": {
+    "demoBadge": "Demo example",
+    "health": {
+      "title": "Business Health Score",
+      "improve": "Improve score"
+    },
+    "actionCenter": {
+      "title": "AI Action Center",
+      "recommended": "Recommended action",
+      "expected": "Expected impact"
+    },
+    "insights": {
+      "title": "AI Business Insights"
+    },
+    "recommendations": {
+      "title": "AI Recommendations",
+      "expected": "Expected impact"
+    },
+    "alerts": {
+      "title": "Smart Alerts"
+    },
+    "customers": {
+      "title": "Customer Insights",
+      "today": "Today",
+      "week": "This week",
+      "month": "This month",
+      "year": "This year",
+      "avgValue": "Average customer value",
+      "activity": "Activity vs. monthly average",
+      "insightUp": "Customer activity is above usual — a good time for a retention offer.",
+      "insightDown": "Customer activity is below usual — worth reminding returning customers.",
+      "insightNoData": "Fill in customer numbers in your business profile to see the trend."
+    },
+    "sales": {
+      "title": "Sales Analytics",
+      "noData": "Import a sales file to see analytics.",
+      "revenue": "Revenue",
+      "orders": "Orders",
+      "aov": "Average order value",
+      "customers": "Customers"
+    },
+    "external": {
+      "title": "External Signals",
+      "subtitle": "AI considers not only internal data, but also the external context around the business.",
+      "loading": "Loading external signals…",
+      "liveData": "Live data",
+      "dataUnavailable": "Data unavailable",
+      "noCity": "City not set",
+      "weather": {
+        "title": "Weather",
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "precipProbability": "Precipitation probability"
+      },
+      "holidays": {
+        "title": "Holidays",
+        "daysUntil": "in {{count}} days",
+        "today": "today",
+        "tomorrow": "tomorrow"
+      }
+    },
+    "campaign": {
+      "title": "Campaign Intelligence",
+      "offer": "Offer",
+      "impact": "Expected impact"
+    },
+    "campaignBuilder": {
+      "title": "Create AI Campaign",
+      "name": "Name",
+      "reason": "Reason",
+      "period": "Period",
+      "type": "Campaign Type",
+      "discount": "Discount",
+      "description": "Description",
+      "create": "Create Campaign",
+      "cancel": "Cancel",
+      "created": "Campaign Created",
+      "ready": "Ready to Launch",
+      "done": "Done"
+    }
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "howItWorks": "How it works",
+      "login": "Log in",
+      "startFree": "Start for free"
+    },
+    "hero": {
+      "badge": "AI for small businesses in Kazakhstan",
+      "titleLine1": "A sales spreadsheet",
+      "titleLine2": "turns into a",
+      "titleHighlight": "business plan",
+      "description": "Upload your sales file — Bizim calculates real metrics, shows charts, and asks AI to explain what's happening with your business and what to do next.",
+      "createAccount": "Create account",
+      "suitableFor": "Great for:",
+      "mockDashboardLabel": "dashboard — overview",
+      "aiInsight": "revenue is 18% higher on Fridays — worth adding staff"
+    },
+    "features": {
+      "title": "Everything you need to understand your business",
+      "subtitle": "From uploading a file to ready-made recommendations — no accountant or complex spreadsheets required.",
+      "items": {
+        "import": { "title": "Excel & CSV import", "description": "Upload your sales file as-is — Bizim finds the date, amount, and client columns automatically." },
+        "analytics": { "title": "Ready-made analytics", "description": "Revenue, average check, number of sales — calculated automatically, no formulas or pivot tables." },
+        "days": { "title": "Best and worst days", "description": "A breakdown by day of week shows when your business earns the most and when it dips." },
+        "aiConsultant": { "title": "AI consultant", "description": "Ask questions about your numbers in chat and get answers based on your business's real data." },
+        "growthTools": { "title": "AI growth tools", "description": "Promotions, Instagram posts, TikTok scripts, loyalty programs, and SMS campaigns — in seconds." },
+        "profile": { "title": "Business profile", "description": "A short questionnaire about your business — and AI immediately accounts for city, business type, and hours." }
+      }
+    },
+    "how": {
+      "title": "From file to analytics in three steps",
+      "steps": {
+        "register": { "title": "Register your business", "description": "A short questionnaire: business type, city, working hours. Takes a couple of minutes." },
+        "upload": { "title": "Upload your sales", "description": "Any Excel or CSV with dates and amounts — the parser figures out the file structure on its own." },
+        "aiReview": { "title": "Get an AI breakdown", "description": "Charts, metrics, and clear recommendations — what to do next to grow." }
+      }
+    },
+    "growthTeaser": {
+      "badge": "AI growth tools",
+      "title": "AI comes up with a promotion, a post, and a campaign — for you",
+      "description": "Based on your sales analysis, Bizim generates ready-made marketing materials for your specific business — all that's left is to publish.",
+      "items": {
+        "promo": "🎁 Promotion",
+        "instagram": "📱 Instagram post",
+        "tiktok": "🎥 TikTok script",
+        "loyalty": "💳 Loyalty program",
+        "coupons": "🎟 Coupons",
+        "sms": "📨 SMS campaign",
+        "profitTips": "⭐ Profit recommendations"
+      }
+    },
+    "cta": {
+      "title": "Ready to really understand your business?",
+      "description": "Registration takes a couple of minutes. Your data and files stay private to your account.",
+      "haveAccount": "I already have an account"
+    },
+    "footer": {
+      "tagline": "AI for small businesses in Kazakhstan"
+    }
+  },
+  "auth": {
+    "password": "Password",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "businessName": "Business name",
+    "login": {
+      "title": "Log in",
+      "submitting": "Logging in...",
+      "submit": "Log in",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign up"
+    },
+    "register": {
+      "supabaseNotConfigured": "Supabase is not configured. Add the keys to .env.local, see .env.example.",
+      "alreadyLoggedInTitle": "You're already logged in",
+      "goToDashboard": "Go to Dashboard",
+      "signingOut": "Logging out...",
+      "signOutAndRegister": "Log out and register a new account",
+      "checkEmailTitle": "Check your email",
+      "checkEmailDescription": "We sent a confirmation email to {{email}}. Follow the link in the email, then log in.",
+      "goToLogin": "Go to login",
+      "title": "Register your business",
+      "subtitle": "This information helps AI give accurate recommendations for your specific business.",
+      "sections": {
+        "personal": "Personal details",
+        "business": "About the business",
+        "clients": "Clients",
+        "operational": "Operational details"
+      },
+      "businessType": "Business type",
+      "chooseOption": "Choose...",
+      "city": "City",
+      "employeesCount": "Number of employees",
+      "clientsToday": "Clients today",
+      "clientsWeek": "Clients this week",
+      "clientsMonth": "Clients this month",
+      "clientsYear": "Clients this year",
+      "mainProblem": "Main business problem",
+      "averageCheck": "Average check (tenge)",
+      "workHoursFrom": "Start of working day",
+      "workHoursTo": "End of working day",
+      "peakHours": "Peak hours for clients",
+      "peakHoursPlaceholder": "e.g. 12:00-14:00 and 18:00-20:00",
+      "submitting": "Creating account...",
+      "submit": "Sign up",
+      "haveAccount": "Already have an account?"
+    }
+  },
+  "importPanel": {
+    "title": "Import data",
+    "subtitle": "Supported files: .csv, .xlsx, .xls, .json with sales data.",
+    "uploading": "Uploading...",
+    "chooseFile": "Choose file",
+    "noFiles": "No files uploaded yet.",
+    "rowsCount": "{{count}} rows",
+    "analyzing": "Analyzing...",
+    "runAnalysis": "Run AI analysis",
+    "reportTitle": "OpenAI report",
+    "errors": {
+      "emptyFile": "The file contains no data rows.",
+      "saveFailed": "Failed to save the file",
+      "uploadError": "File upload error",
+      "nonJsonResponse": "The server returned a non-JSON response (HTTP {{status}}). Check whether /api/analyze is redirecting.",
+      "analysisFailed": "Failed to run analysis (HTTP {{status}})",
+      "emptyAnalysisResponse": "The server responded 200 but returned no analysis text.",
+      "analysisError": "Analysis error"
+    }
+  },
+  "growth": {
+    "sectionTitle": "AI tools for business growth",
+    "sectionSubtitle": "Generated from your AI analysis — activate any tool.",
+    "generating": "Generating...",
+    "regenerate": "Regenerate",
+    "activate": "Activate",
+    "hideResult": "Hide result",
+    "showResult": "Show result",
+    "close": "Close",
+    "errors": {
+      "nonJsonResponse": "The server returned a non-JSON response (HTTP {{status}}).",
+      "generateFailed": "Failed to generate (HTTP {{status}})",
+      "emptyResponse": "The server responded 200 but returned no result content.",
+      "generationError": "Generation error"
+    },
+    "tools": {
+      "promo": { "title": "Create a promotion", "description": "A ready-made promotion for your business's slow hours or days." },
+      "instagram_post": { "title": "Instagram post", "description": "A ready-to-post caption with hashtags." },
+      "tiktok_script": { "title": "TikTok script", "description": "A short video script: hook, scenes, caption." },
+      "loyalty_program": { "title": "Loyalty program", "description": "A bonus mechanic tailored to this specific business." },
+      "coupon": { "title": "Coupons", "description": "A coupon idea with a discount or gift for clients." },
+      "sms": { "title": "SMS campaign", "description": "A short SMS text for your client base." },
+      "profit_tips": { "title": "Profit recommendations", "description": "Specific steps to increase profit based on your numbers." }
+    }
+  },
+  "settingsPage": {
+    "back": "Back to dashboard",
+    "title": "Settings",
+    "subtitle": "Profile and account details"
+  },
+  "sharePage": {
+    "readOnlyBadge": "Public conversation · read-only",
+    "subtitle": "Conversation with the AI assistant for \"{{businessName}}\"",
+    "noMessages": "There are no messages in this conversation yet.",
+    "footerDescription": "Bizim — an AI platform for small businesses in Kazakhstan: sales analysis, marketing, and AI recommendations.",
+    "footerCta": "Try it for free"
+  },
+  "admin": {
+    "forbidden": {
+      "title": "Access denied",
+      "description": "This page is only available to administrators.",
+      "back": "Back to dashboard"
+    },
+    "panelLabel": "Admin Panel",
+    "backToDashboard": "Back to dashboard",
+    "charts": {
+      "daysCount": "{{count}} days",
+      "registrationsTitle": "User registrations",
+      "newInPeriod": "{{count}} new in the selected period",
+      "analysesTitle": "AI analyses",
+      "createdInPeriod": "{{count}} created in the selected period"
+    },
+    "export": {
+      "success": "Exported successfully",
+      "error": "Export failed",
+      "exporting": "Exporting...",
+      "exportUsers": "Export Users",
+      "exportBusinesses": "Export Businesses"
+    },
+    "overview": {
+      "cards": {
+        "totalUsers": "Total users",
+        "totalBusinesses": "Total businesses",
+        "totalAnalyses": "Total AI analyses",
+        "totalGrowthTools": "Total Growth Tools",
+        "registeredToday": "Registered today",
+        "active7d": "Active in 7 days"
+      },
+      "topBusinesses": "Top Businesses",
+      "byAnalysesCount": "By number of AI analyses",
+      "noData": "No data yet.",
+      "columns": {
+        "name": "Name",
+        "analyses": "Analyses",
+        "lastActivity": "Last activity"
+      }
+    },
+    "search": {
+      "filters": {
+        "all": "All",
+        "admin": "Admin",
+        "user": "User",
+        "active": "Active",
+        "noBusiness": "No business",
+        "newWeek": "New this week"
+      },
+      "placeholder": "Search by email, business, city, or role...",
+      "countOf": "{{filtered}} of {{total}} users"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "users": "Users",
+      "businesses": "Businesses",
+      "analyses": "AI Analyses",
+      "tools": "Growth Tools"
+    },
+    "pagination": {
+      "total": "Total: {{count}}",
+      "show": "Show:",
+      "back": "Back",
+      "forward": "Next",
+      "pageOf": "Page {{page}} of {{totalPages}}"
+    },
+    "deleteModal": {
+      "title": "Delete record?",
+      "description": "Are you sure you want to delete this record? This action cannot be undone.",
+      "deleting": "Deleting...",
+      "confirm": "Delete"
+    },
+    "usersTable": {
+      "columns": {
+        "email": "Email",
+        "registration": "Registered",
+        "business": "Business",
+        "city": "City",
+        "role": "Role",
+        "lastLogin": "Last login",
+        "analyses": "Analyses",
+        "actions": "Actions"
+      },
+      "makeUser": "Make User",
+      "makeAdmin": "Make Admin",
+      "roleUpdated": "Role updated",
+      "deleteConfirm": "Delete user {{email}} and all their data permanently?",
+      "errors": {
+        "roleChangeFailed": "Failed to change role",
+        "deleteFailed": "Failed to delete user"
+      }
+    },
+    "businessesTable": {
+      "columns": {
+        "name": "Name",
+        "type": "Type",
+        "city": "City",
+        "employees": "Employees",
+        "averageCheck": "Average check",
+        "analyses": "Analyses",
+        "growthTools": "Growth Tools"
+      },
+      "searchPlaceholder": "Search by name or city...",
+      "allTypes": "All types",
+      "edit": "Edit",
+      "save": "Save",
+      "deleteConfirm": "Delete business \"{{name}}\" and all related data?",
+      "errors": {
+        "saveFailed": "Failed to save changes",
+        "deleteFailed": "Failed to delete business"
+      }
+    },
+    "analysesTable": {
+      "report": "Report",
+      "date": "Date",
+      "searchPlaceholder": "Filter by business name...",
+      "deleteConfirm": "Delete this AI analysis? This action cannot be undone.",
+      "errors": {
+        "deleteFailed": "Failed to delete analysis"
+      }
+    },
+    "growthToolsTable": {
+      "title": "Title",
+      "deleteConfirm": "Delete this generated tool?",
+      "errors": {
+        "deleteFailed": "Failed to delete"
+      }
+    }
+  }
+}

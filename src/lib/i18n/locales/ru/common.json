@@ -1,0 +1,612 @@
+{
+  "nav": {
+    "settings": "Настройки",
+    "adminPanel": "Admin Panel",
+    "logout": "Выйти"
+  },
+  "sidebar": {
+    "newChat": "Новый чат",
+    "searchPlaceholder": "Поиск по чатам...",
+    "pinned": "Закреплённые",
+    "recent": "Недавние",
+    "noResults": "Ничего не найдено",
+    "noChats": "Пока нет диалогов",
+    "expand": "Развернуть боковую панель",
+    "collapse": "Свернуть боковую панель",
+    "pin": "Закрепить",
+    "unpin": "Открепить",
+    "rename": "Переименовать",
+    "share": "Поделиться",
+    "delete": "Удалить",
+    "confirmDelete": "Точно удалить?",
+    "timeJustNow": "только что",
+    "timeMinutesAgo": "{{count}} мин назад",
+    "timeHoursAgo": "{{count}} ч назад",
+    "timeYesterday": "вчера",
+    "timeDaysAgo": "{{count}} дн назад"
+  },
+  "chat": {
+    "newChatTitle": "Новый чат",
+    "share": "Поделиться",
+    "download": "Скачать диалог",
+    "clear": "Очистить диалог",
+    "offline": "⚠️ Нет подключения к интернету — сообщения не будут доставлены",
+    "onlineRestored": "Соединение восстановлено",
+    "loadError": "Не удалось загрузить диалог",
+    "loadErrorGeneric": "Ошибка загрузки диалога",
+    "createError": "Не удалось создать диалог",
+    "createErrorGeneric": "Ошибка создания диалога",
+    "responseError": "Не удалось получить ответ (HTTP {{status}})",
+    "noStreamResponse": "Сервер не вернул потоковый ответ",
+    "interruptedResponse": "Ответ прерван: {{reason}}",
+    "genericError": "Ошибка чата. Проверьте соединение и попробуйте снова.",
+    "historyUpdateError": "Не удалось обновить историю на сервере",
+    "waitSaving": "Подождите — сообщение ещё сохраняется",
+    "renameError": "Не удалось переименовать чат",
+    "pinError": "Не удалось закрепить чат",
+    "deleted": "Чат удалён",
+    "deleteError": "Не удалось удалить чат",
+    "genericErrorShort": "Ошибка",
+    "cleared": "Диалог очищен",
+    "clearError": "Не удалось очистить диалог на сервере",
+    "emptyExport": "В этом диалоге пока нет сообщений",
+    "you": "Вы",
+    "composerPlaceholder": "Спросите что-нибудь о вашем бизнесе... (Enter — отправить, Shift+Enter — новая строка)",
+    "disclaimer": "Bizim AI может ошибаться. Проверяйте важные цифры.",
+    "stopGeneration": "Остановить генерацию",
+    "send": "Отправить",
+    "uploadSoon": "Загрузка файлов в чат появится совсем скоро 🚧",
+    "uploadDropHint": "📎 Загрузка файлов скоро появится здесь",
+    "welcomeTitle": "Добро пожаловать в Bizim AI",
+    "welcomeSubtitle": "Я помогу разобраться с делами «{{businessName}}» — от анализа продаж до идей для соцсетей. Спросите что угодно или выберите готовую подсказку ниже.",
+    "prompts": {
+      "analyze": { "title": "Проанализировать бизнес", "text": "Проанализируй мой бизнес и дай рекомендации по росту" },
+      "instagram": { "title": "Пост для Instagram", "text": "Сгенерируй пост для Instagram про новую акцию" },
+      "campaign": { "title": "Маркетинговая кампания", "text": "Придумай маркетинговую кампанию на следующий месяц" },
+      "sales": { "title": "Увеличить продажи", "text": "Что можно сделать, чтобы увеличить продажи уже на этой неделе?" }
+    },
+    "aiTyping": "AI печатает",
+    "copy": "Копировать",
+    "copied": "Скопировано",
+    "copyError": "Не удалось скопировать",
+    "edit": "Редактировать",
+    "cancel": "Отмена",
+    "regenerate": "Заново сгенерировать",
+    "continue": "Продолжить ответ",
+    "goodResponse": "Хороший ответ",
+    "badResponse": "Плохой ответ",
+    "retry": "Повторить",
+    "codeCopied": "Код скопирован",
+    "codeCopyError": "Не удалось скопировать",
+    "codeCopiedLabel": "Скопировано",
+    "codeCopyLabel": "Copy",
+    "codeFallbackLabel": "код",
+    "plainTextLabel": "Текст"
+  },
+  "share": {
+    "title": "Поделиться диалогом",
+    "description": "Любой человек по ссылке сможет посмотреть этот диалог в режиме чтения — без входа в аккаунт.",
+    "copyButton": "Копировать",
+    "copied": "Ссылка скопирована",
+    "copyError": "Не удалось скопировать ссылку",
+    "disable": "Отключить доступ по ссылке",
+    "disabling": "Отключаем...",
+    "createButton": "Создать публичную ссылку",
+    "creating": "Создаём ссылку...",
+    "createError": "Не удалось создать ссылку",
+    "disableError": "Не удалось отключить доступ",
+    "close": "Закрыть"
+  },
+  "settings": {
+    "personalTitle": "Личные данные",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "email": "Email",
+    "emailHint": "Смена email пока не поддерживается",
+    "businessName": "Название бизнеса",
+    "save": "Сохранить изменения",
+    "saving": "Сохранение...",
+    "saved": "Изменения сохранены",
+    "saveError": "Не удалось сохранить изменения",
+    "language": {
+      "title": "Язык",
+      "description": "Выберите язык интерфейса приложения."
+    },
+    "theme": {
+      "title": "Тема оформления",
+      "description": "Выберите светлую или тёмную тему.",
+      "ariaLabel": "Тема оформления"
+    }
+  },
+  "validation": {
+    "firstNameRequired": "Укажите имя",
+    "lastNameRequired": "Укажите фамилию",
+    "emailInvalid": "Некорректный email",
+    "passwordMin": "Минимум 6 символов",
+    "passwordRequired": "Введите пароль",
+    "businessNameRequired": "Укажите название бизнеса",
+    "businessTypeRequired": "Выберите тип бизнеса",
+    "cityRequired": "Укажите город",
+    "workHoursFromRequired": "Укажите время начала работы",
+    "workHoursToRequired": "Укажите время окончания работы"
+  },
+  "business": {
+    "types": {
+      "cafe": "Кафе / ресторан",
+      "shop": "Магазин",
+      "salon": "Салон красоты",
+      "pharmacy": "Аптека",
+      "carwash": "Автомойка",
+      "other": "Другое"
+    }
+  },
+  "weekday": {
+    "sun": "воскресенье",
+    "mon": "понедельник",
+    "tue": "вторник",
+    "wed": "среда",
+    "thu": "четверг",
+    "fri": "пятница",
+    "sat": "суббота",
+    "short": {
+      "sun": "Вс",
+      "mon": "Пн",
+      "tue": "Вт",
+      "wed": "Ср",
+      "thu": "Чт",
+      "fri": "Пт",
+      "sat": "Сб"
+    }
+  },
+  "theme": {
+    "enableLight": "Включить светлую тему",
+    "enableDark": "Включить тёмную тему",
+    "light": "Светлая тема",
+    "dark": "Тёмная тема"
+  },
+  "aiThinking": {
+    "title": "AI сейчас анализирует...",
+    "steps": {
+      "sales": "Продажи",
+      "averageCheck": "Средний чек",
+      "clients": "Клиентов",
+      "profit": "Прибыль",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "promotions": "Акции",
+      "growth": "Growth"
+    }
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Язык интерфейса"
+  },
+  "fileParser": {
+    "unsupportedFormat": "Неподдерживаемый формат файла. Разрешены: .csv, .xlsx, .xls, .json",
+    "csvParseError": "Ошибка разбора CSV: {{message}} (строка {{row}})",
+    "invalidJson": "Файл не является корректным JSON"
+  },
+  "dashboard": {
+    "businessNotFound": "Профиль бизнеса не найден",
+    "charts": {
+      "dailyTitle": "Динамика по дням",
+      "notEnoughDataImport": "Недостаточно данных. Импортируйте файл с данными продаж.",
+      "revenueByWeekday": "Выручка по дням недели",
+      "builtFromRows": "Построено по {{count}} загруженным строкам",
+      "notEnoughDataColumns": "Недостаточно данных: в файле нет колонки с датой и выручкой.",
+      "totalRevenue": "Суммарная выручка",
+      "totalClients": "Всего клиентов",
+      "averageCheckComputed": "Средний чек (посчитан)",
+      "bestDay": "Лучший день",
+      "worstDay": "Слабый день",
+      "notEnoughData": "Недостаточно данных",
+      "unknownDate": "неизвестно"
+    },
+    "card": {
+      "never": "ещё не было",
+      "employees": "Сотрудников",
+      "clientsPerMonth": "Клиентов/месяц",
+      "averageCheck": "Средний чек",
+      "peakHours": "Пиковые часы",
+      "lastAnalysis": "Последний AI-анализ",
+      "updated": "Обновлено"
+    },
+    "hero": {
+      "welcome": "Добро пожаловать",
+      "subtitle": "Bizim AI помогает анализировать продажи, создавать акции, писать Instagram-посты, TikTok-сценарии, SMS-рассылки и рекомендации для роста бизнеса.",
+      "aiChat": "AI Chat",
+      "newAnalysis": "Новый анализ",
+      "aiAnalysis": "AI Анализ",
+      "growthTools": "Growth Tools"
+    },
+    "history": {
+      "title": "История анализов",
+      "subtitle": "Последние загруженные Excel и CSV файлы",
+      "empty": "Пока нет анализов",
+      "analysisComplete": "Анализ завершён"
+    },
+    "stats": {
+      "title": "Аналитика бизнеса",
+      "sales": "Продажи",
+      "clients": "Клиенты",
+      "averageCheck": "Средний чек",
+      "growth": "Рост",
+      "importExcel": "Импорт Excel"
+    }
+  },
+  "aiDashboard": {
+    "demoBadge": "Демо-пример",
+    "health": {
+      "title": "Business Health Score",
+      "improve": "Улучшить показатель"
+    },
+    "actionCenter": {
+      "title": "AI Action Center",
+      "recommended": "Рекомендуемое действие",
+      "expected": "Ожидаемый эффект"
+    },
+    "insights": {
+      "title": "AI Business Insights"
+    },
+    "recommendations": {
+      "title": "AI Recommendations",
+      "expected": "Ожидаемый эффект"
+    },
+    "alerts": {
+      "title": "Smart Alerts"
+    },
+    "customers": {
+      "title": "Customer Insights",
+      "today": "Сегодня",
+      "week": "За неделю",
+      "month": "За месяц",
+      "year": "За год",
+      "avgValue": "Средний чек клиента",
+      "activity": "Активность к среднемесячной",
+      "insightUp": "Активность клиентов выше обычного — хорошее время для акции на удержание.",
+      "insightDown": "Активность клиентов ниже обычного — стоит напомнить о себе постоянным клиентам.",
+      "insightNoData": "Заполните данные о клиентах в профиле бизнеса, чтобы увидеть динамику."
+    },
+    "sales": {
+      "title": "Sales Analytics",
+      "noData": "Загрузите файл с продажами, чтобы увидеть аналитику.",
+      "revenue": "Выручка",
+      "orders": "Заказы",
+      "aov": "Средний чек",
+      "customers": "Клиенты"
+    },
+    "external": {
+      "title": "External Signals",
+      "subtitle": "AI учитывает не только внутренние данные, но и внешний контекст вокруг бизнеса.",
+      "loading": "Получаем внешние сигналы…",
+      "liveData": "Реальные данные",
+      "dataUnavailable": "Данные недоступны",
+      "noCity": "Город не указан",
+      "weather": {
+        "title": "Погода",
+        "today": "Сегодня",
+        "tomorrow": "Завтра",
+        "precipProbability": "Вероятность осадков"
+      },
+      "holidays": {
+        "title": "Праздники",
+        "daysUntil": "через {{count}} дн.",
+        "today": "сегодня",
+        "tomorrow": "завтра"
+      }
+    },
+    "campaign": {
+      "title": "Campaign Intelligence",
+      "offer": "Предложение",
+      "impact": "Ожидаемый эффект"
+    },
+    "campaignBuilder": {
+      "title": "Создать AI-кампанию",
+      "name": "Название",
+      "reason": "Причина",
+      "period": "Период",
+      "type": "Тип акции",
+      "discount": "Размер скидки",
+      "description": "Описание",
+      "create": "Создать кампанию",
+      "cancel": "Отмена",
+      "created": "Кампания создана",
+      "ready": "Готова к запуску",
+      "done": "Готово"
+    }
+  },
+  "landing": {
+    "nav": {
+      "features": "Возможности",
+      "howItWorks": "Как это работает",
+      "login": "Войти",
+      "startFree": "Начать бесплатно"
+    },
+    "hero": {
+      "badge": "AI для малого бизнеса Казахстана",
+      "titleLine1": "Excel с продажами",
+      "titleLine2": "превращается в",
+      "titleHighlight": "бизнес-план",
+      "description": "Загрузите файл с продажами — Bizim посчитает реальные метрики, покажет графики и попросит AI объяснить, что происходит с бизнесом и что делать дальше.",
+      "createAccount": "Создать аккаунт",
+      "suitableFor": "Подходит для:",
+      "mockDashboardLabel": "dashboard — обзор",
+      "aiInsight": "по пятницам выручка выше на 18% — стоит усилить смену"
+    },
+    "features": {
+      "title": "Всё, что нужно, чтобы понимать свой бизнес",
+      "subtitle": "От загрузки файла до готовых рекомендаций — без бухгалтера и сложных таблиц.",
+      "items": {
+        "import": { "title": "Импорт Excel и CSV", "description": "Загрузите файл с продажами как есть — Bizim сам найдёт колонки с датой, суммой и клиентами." },
+        "analytics": { "title": "Готовая аналитика", "description": "Выручка, средний чек, количество продаж — считается автоматически, без формул и сводных таблиц." },
+        "days": { "title": "Лучшие и худшие дни", "description": "Разбивка по дням недели показывает, когда бизнес зарабатывает больше всего, а когда проседает." },
+        "aiConsultant": { "title": "AI-консультант", "description": "Задавайте вопросы о своих цифрах в чате и получайте ответы с учётом реальных данных бизнеса." },
+        "growthTools": { "title": "AI-инструменты роста", "description": "Акции, посты для Instagram, сценарии для TikTok, программы лояльности и SMS-рассылки — за секунды." },
+        "profile": { "title": "Профиль бизнеса", "description": "Короткая анкета о вашем деле — и AI сразу учитывает город, тип бизнеса и часы работы." }
+      }
+    },
+    "how": {
+      "title": "От файла до аналитики за три шага",
+      "steps": {
+        "register": { "title": "Зарегистрируйте бизнес", "description": "Короткая анкета: тип бизнеса, город, часы работы. Это займёт пару минут." },
+        "upload": { "title": "Загрузите продажи", "description": "Любой Excel или CSV с датой и суммой — парсер сам разберётся в структуре файла." },
+        "aiReview": { "title": "Получите разбор от AI", "description": "Графики, метрики и понятные рекомендации — что делать дальше, чтобы расти." }
+      }
+    },
+    "growthTeaser": {
+      "badge": "AI-инструменты роста",
+      "title": "AI придумает акцию, пост и рассылку — вместо вас",
+      "description": "На основе анализа продаж Bizim генерирует готовые маркетинговые материалы под конкретный бизнес — остаётся только опубликовать.",
+      "items": {
+        "promo": "🎁 Акция",
+        "instagram": "📱 Пост для Instagram",
+        "tiktok": "🎥 Сценарий для TikTok",
+        "loyalty": "💳 Программа лояльности",
+        "coupons": "🎟 Купоны",
+        "sms": "📨 SMS-рассылка",
+        "profitTips": "⭐ Рекомендации по прибыли"
+      }
+    },
+    "cta": {
+      "title": "Готовы понять свой бизнес по‑настоящему?",
+      "description": "Регистрация занимает пару минут. Данные и файлы остаются приватными для вашего аккаунта.",
+      "haveAccount": "У меня уже есть аккаунт"
+    },
+    "footer": {
+      "tagline": "AI для малого бизнеса Казахстана"
+    }
+  },
+  "auth": {
+    "password": "Пароль",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "businessName": "Название бизнеса",
+    "login": {
+      "title": "Вход",
+      "submitting": "Входим...",
+      "submit": "Войти",
+      "noAccount": "Нет аккаунта?",
+      "registerLink": "Зарегистрироваться"
+    },
+    "register": {
+      "supabaseNotConfigured": "Supabase не настроен. Добавьте ключи в .env.local, см. .env.example.",
+      "alreadyLoggedInTitle": "Вы уже вошли в аккаунт",
+      "goToDashboard": "Перейти в Dashboard",
+      "signingOut": "Выходим...",
+      "signOutAndRegister": "Выйти и зарегистрировать новый аккаунт",
+      "checkEmailTitle": "Проверьте почту",
+      "checkEmailDescription": "Мы отправили письмо для подтверждения на {{email}}. Перейдите по ссылке в письме, затем войдите в аккаунт.",
+      "goToLogin": "Перейти к входу",
+      "title": "Регистрация бизнеса",
+      "subtitle": "Эти данные помогут AI давать точные рекомендации именно для вашего бизнеса.",
+      "sections": {
+        "personal": "Личные данные",
+        "business": "О бизнесе",
+        "clients": "Клиенты",
+        "operational": "Операционные детали"
+      },
+      "businessType": "Тип бизнеса",
+      "chooseOption": "Выберите...",
+      "city": "Город",
+      "employeesCount": "Количество сотрудников",
+      "clientsToday": "Клиентов сегодня",
+      "clientsWeek": "Клиентов за неделю",
+      "clientsMonth": "Клиентов за месяц",
+      "clientsYear": "Клиентов за год",
+      "mainProblem": "Основная проблема бизнеса",
+      "averageCheck": "Средний чек (тенге)",
+      "workHoursFrom": "Начало рабочего дня",
+      "workHoursTo": "Конец рабочего дня",
+      "peakHours": "В какие часы больше всего клиентов",
+      "peakHoursPlaceholder": "например, 12:00-14:00 и 18:00-20:00",
+      "submitting": "Создаём аккаунт...",
+      "submit": "Зарегистрироваться",
+      "haveAccount": "Уже есть аккаунт?"
+    }
+  },
+  "importPanel": {
+    "title": "Импортировать данные",
+    "subtitle": "Поддерживаются файлы .csv, .xlsx, .xls, .json с данными продаж.",
+    "uploading": "Загружаем...",
+    "chooseFile": "Выбрать файл",
+    "noFiles": "Файлы ещё не загружены.",
+    "rowsCount": "{{count}} строк",
+    "analyzing": "Анализируем...",
+    "runAnalysis": "Запустить AI анализ",
+    "reportTitle": "Отчёт OpenAI",
+    "errors": {
+      "emptyFile": "Файл не содержит строк данных.",
+      "saveFailed": "Не удалось сохранить файл",
+      "uploadError": "Ошибка загрузки файла",
+      "nonJsonResponse": "Сервер вернул не-JSON ответ (HTTP {{status}}). Проверьте, не редиректит ли /api/analyze.",
+      "analysisFailed": "Не удалось выполнить анализ (HTTP {{status}})",
+      "emptyAnalysisResponse": "Сервер ответил 200, но не вернул текст анализа.",
+      "analysisError": "Ошибка анализа"
+    }
+  },
+  "growth": {
+    "sectionTitle": "AI-инструменты для развития бизнеса",
+    "sectionSubtitle": "Сгенерировано на основе вашего AI-анализа — активируйте любой инструмент.",
+    "generating": "Генерируем...",
+    "regenerate": "Сгенерировать заново",
+    "activate": "Активировать",
+    "hideResult": "Скрыть результат",
+    "showResult": "Показать результат",
+    "close": "Закрыть",
+    "errors": {
+      "nonJsonResponse": "Сервер вернул не-JSON ответ (HTTP {{status}}).",
+      "generateFailed": "Не удалось сгенерировать (HTTP {{status}})",
+      "emptyResponse": "Сервер ответил 200, но не вернул содержимое результата.",
+      "generationError": "Ошибка генерации"
+    },
+    "tools": {
+      "promo": { "title": "Создать акцию", "description": "Готовая рекламная акция под слабые часы или дни бизнеса." },
+      "instagram_post": { "title": "Пост для Instagram", "description": "Готовый текст поста с подписью и хэштегами." },
+      "tiktok_script": { "title": "Сценарий для TikTok", "description": "Сценарий короткого ролика: хук, сцены, подпись." },
+      "loyalty_program": { "title": "Программа лояльности", "description": "Механика бонусов, подходящая именно этому бизнесу." },
+      "coupon": { "title": "Купоны", "description": "Идея купона со скидкой или подарком для клиентов." },
+      "sms": { "title": "SMS-рассылка", "description": "Короткий текст SMS для базы клиентов." },
+      "profit_tips": { "title": "Рекомендации по прибыли", "description": "Конкретные шаги для увеличения прибыли на основе цифр." }
+    }
+  },
+  "settingsPage": {
+    "back": "Назад в кабинет",
+    "title": "Настройки",
+    "subtitle": "Профиль и данные аккаунта"
+  },
+  "sharePage": {
+    "readOnlyBadge": "Публичный диалог · только чтение",
+    "subtitle": "Диалог с AI-ассистентом «{{businessName}}»",
+    "noMessages": "В этом диалоге пока нет сообщений.",
+    "footerDescription": "Bizim — AI-платформа для малого бизнеса в Казахстане: анализ продаж, маркетинг и рекомендации от AI.",
+    "footerCta": "Попробовать бесплатно"
+  },
+  "admin": {
+    "forbidden": {
+      "title": "Доступ запрещён",
+      "description": "Эта страница доступна только администраторам.",
+      "back": "Вернуться в кабинет"
+    },
+    "panelLabel": "Admin Panel",
+    "backToDashboard": "В кабинет",
+    "charts": {
+      "daysCount": "{{count}} дней",
+      "registrationsTitle": "Регистрации пользователей",
+      "newInPeriod": "{{count}} новых за выбранный период",
+      "analysesTitle": "AI-анализы",
+      "createdInPeriod": "{{count}} создано за выбранный период"
+    },
+    "export": {
+      "success": "Успешно экспортировано",
+      "error": "Ошибка при экспорте",
+      "exporting": "Экспорт...",
+      "exportUsers": "Export Users",
+      "exportBusinesses": "Export Businesses"
+    },
+    "overview": {
+      "cards": {
+        "totalUsers": "Всего пользователей",
+        "totalBusinesses": "Всего бизнесов",
+        "totalAnalyses": "Всего AI-анализов",
+        "totalGrowthTools": "Всего Growth Tools",
+        "registeredToday": "Регистраций сегодня",
+        "active7d": "Активных за 7 дней"
+      },
+      "topBusinesses": "Top Businesses",
+      "byAnalysesCount": "По количеству AI-анализов",
+      "noData": "Пока нет данных.",
+      "columns": {
+        "name": "Название",
+        "analyses": "Анализов",
+        "lastActivity": "Последняя активность"
+      }
+    },
+    "search": {
+      "filters": {
+        "all": "Все",
+        "admin": "Admin",
+        "user": "User",
+        "active": "Активные",
+        "noBusiness": "Без бизнеса",
+        "newWeek": "Новые за неделю"
+      },
+      "placeholder": "Поиск по email, бизнесу, городу или роли...",
+      "countOf": "{{filtered}} из {{total}} пользователей"
+    },
+    "tabs": {
+      "overview": "Обзор",
+      "users": "Пользователи",
+      "businesses": "Бизнесы",
+      "analyses": "AI Анализы",
+      "tools": "Growth Tools"
+    },
+    "pagination": {
+      "total": "Всего: {{count}}",
+      "show": "Показывать:",
+      "back": "Назад",
+      "forward": "Вперёд",
+      "pageOf": "Стр. {{page}} из {{totalPages}}"
+    },
+    "deleteModal": {
+      "title": "Удалить запись?",
+      "description": "Вы уверены, что хотите удалить запись? Это действие нельзя отменить.",
+      "deleting": "Удаление...",
+      "confirm": "Удалить"
+    },
+    "usersTable": {
+      "columns": {
+        "email": "Email",
+        "registration": "Регистрация",
+        "business": "Бизнес",
+        "city": "Город",
+        "role": "Роль",
+        "lastLogin": "Последний вход",
+        "analyses": "Анализов",
+        "actions": "Действия"
+      },
+      "makeUser": "Сделать User",
+      "makeAdmin": "Сделать Admin",
+      "roleUpdated": "Роль обновлена",
+      "deleteConfirm": "Удалить пользователя {{email}} и все его данные без возможности восстановления?",
+      "errors": {
+        "roleChangeFailed": "Не удалось изменить роль",
+        "deleteFailed": "Не удалось удалить пользователя"
+      }
+    },
+    "businessesTable": {
+      "columns": {
+        "name": "Название",
+        "type": "Тип",
+        "city": "Город",
+        "employees": "Сотрудников",
+        "averageCheck": "Средний чек",
+        "analyses": "Анализов",
+        "growthTools": "Growth Tools"
+      },
+      "searchPlaceholder": "Поиск по названию или городу...",
+      "allTypes": "Все типы",
+      "edit": "Редактировать",
+      "save": "Сохранить",
+      "deleteConfirm": "Удалить бизнес «{{name}}» и все связанные данные?",
+      "errors": {
+        "saveFailed": "Не удалось сохранить изменения",
+        "deleteFailed": "Не удалось удалить бизнес"
+      }
+    },
+    "analysesTable": {
+      "report": "Отчёт",
+      "date": "Дата",
+      "searchPlaceholder": "Фильтр по названию бизнеса...",
+      "deleteConfirm": "Удалить этот AI-анализ? Это действие нельзя отменить.",
+      "errors": {
+        "deleteFailed": "Не удалось удалить анализ"
+      }
+    },
+    "growthToolsTable": {
+      "title": "Заголовок",
+      "deleteConfirm": "Удалить этот сгенерированный инструмент?",
+      "errors": {
+        "deleteFailed": "Не удалось удалить"
+      }
+    }
+  }
+}
