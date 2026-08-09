@@ -23,7 +23,9 @@ import CampaignBuilderModal, {
   type CampaignBuilderRequest,
 } from "@/components/dashboard/CampaignBuilderModal";
 import { buildAIInsightsBundle, type CampaignSeed } from "@/lib/aiInsights";
-import type { Business, ImportedFile } from "@/types";
+import FeatureGate from "@/components/subscription/FeatureGate";
+import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatusCard";
+import type { Business, ImportedFile, Subscription } from "@/types";
 import type { ComputedStats } from "@/lib/analytics";
 import i18n from "@/lib/i18n";
 
@@ -32,6 +34,7 @@ interface DashboardViewProps {
   userEmail: string;
   files: ImportedFile[];
   analytics: ComputedStats;
+  subscription: Subscription | null;
 }
 
 // Вся презентационная часть /dashboard вынесена сюда как клиентский компонент,
@@ -42,6 +45,7 @@ export default function DashboardView({
   userEmail,
   files,
   analytics,
+  subscription,
 }: DashboardViewProps) {
   const { t, i18n: i18next } = useTranslation();
   const locale = i18n.language === "en" ? "en-US" : "ru-RU";
@@ -127,44 +131,63 @@ export default function DashboardView({
 
         <AIThinking />
 
-        {/* ---------- 1. Business Health Score ---------- */}
+        {/* ---------- Подписка ---------- */}
+        <SubscriptionStatusCard subscription={subscription} />
+
+        {/* ---------- 1. Business Health Score (открыт как "витрина") ---------- */}
         <BusinessHealthScore bundle={aiBundle} />
 
         {/* ---------- 2. Sales Analytics ---------- */}
-        <SalesAnalytics rows={rows} />
+        <FeatureGate subscription={subscription} feature="basic_ai_analysis">
+          <SalesAnalytics rows={rows} />
+        </FeatureGate>
 
         {/* ---------- 3. AI Insights ---------- */}
-        <AIInsights bundle={aiBundle} />
+        <FeatureGate subscription={subscription} feature="basic_ai_analysis">
+          <AIInsights bundle={aiBundle} />
+        </FeatureGate>
 
-        {/* ---------- 4. AI Action Center ---------- */}
-        <AIActionCenter
-          bundle={aiBundle}
-          createdIds={createdCampaignIds}
-          onActivate={handleActivateCampaign}
-        />
+        {/* ---------- 4. AI Action Center (Growth+) ---------- */}
+        <FeatureGate subscription={subscription} feature="campaign_intelligence">
+          <AIActionCenter
+            bundle={aiBundle}
+            createdIds={createdCampaignIds}
+            onActivate={handleActivateCampaign}
+          />
+        </FeatureGate>
 
         {/* ---------- 5. AI Recommendations ---------- */}
-        <AIRecommendations
-          bundle={aiBundle}
-          createdIds={createdCampaignIds}
-          onActivate={handleActivateCampaign}
-        />
+        <FeatureGate subscription={subscription} feature="basic_recommendations">
+          <AIRecommendations
+            bundle={aiBundle}
+            createdIds={createdCampaignIds}
+            onActivate={handleActivateCampaign}
+          />
+        </FeatureGate>
 
-        {/* ---------- Campaign Intelligence (AI-слой над Growth Tools) ---------- */}
-        <CampaignIntelligence
-          topRecommendation={topRecommendation}
-          createdIds={createdCampaignIds}
-          onActivate={handleActivateCampaign}
-        />
+        {/* ---------- Campaign Intelligence (AI-слой над Growth Tools, Growth+) ---------- */}
+        <FeatureGate subscription={subscription} feature="campaign_intelligence">
+          <CampaignIntelligence
+            topRecommendation={topRecommendation}
+            createdIds={createdCampaignIds}
+            onActivate={handleActivateCampaign}
+          />
+        </FeatureGate>
 
-        {/* ---------- 6. Smart Alerts ---------- */}
-        <SmartAlerts bundle={aiBundle} />
+        {/* ---------- 6. Smart Alerts (Growth+) ---------- */}
+        <FeatureGate subscription={subscription} feature="smart_alerts">
+          <SmartAlerts bundle={aiBundle} />
+        </FeatureGate>
 
         {/* ---------- 7. Customer Insights ---------- */}
-        <CustomerInsights business={business} stats={analytics} />
+        <FeatureGate subscription={subscription} feature="customer_insights">
+          <CustomerInsights business={business} stats={analytics} />
+        </FeatureGate>
 
-        {/* ---------- 8. External Signals ---------- */}
-        <ExternalSignals city={business.city} />
+        {/* ---------- 8. External Signals (Growth+) ---------- */}
+        <FeatureGate subscription={subscription} feature="external_signals">
+          <ExternalSignals city={business.city} />
+        </FeatureGate>
 
         {/* ---------- 9. Существующие Growth Tools / история / импорт ---------- */}
         <BusinessCard business={business} />
@@ -242,7 +265,9 @@ export default function DashboardView({
             <div id="import-panel" className="card h-full flex flex-col">
               <h3 className="text-xl font-bold mb-5">📥 {t("dashboard.stats.importExcel")}</h3>
               <div className="flex-1">
-                <ImportPanel businessId={business.id} initialFiles={files} />
+                <FeatureGate subscription={subscription} feature="excel_import">
+                  <ImportPanel businessId={business.id} initialFiles={files} />
+                </FeatureGate>
               </div>
             </div>
 

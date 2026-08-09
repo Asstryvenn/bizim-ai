@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/DashboardNav";
 import ChatApp from "@/components/chat/ChatApp";
+import FeatureGate from "@/components/subscription/FeatureGate";
+import { getPaymentService } from "@/lib/subscription/paymentService";
 import type { Business, ChatConversation, ChatMessage } from "@/types";
 
 export default async function ChatPage() {
@@ -48,6 +50,7 @@ export default async function ChatPage() {
   }
 
   const userName = `${typedBusiness.first_name} ${typedBusiness.last_name}`.trim() || typedBusiness.business_name;
+  const subscription = await getPaymentService(supabase).getSubscription(typedBusiness.id);
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-mist">
@@ -58,14 +61,18 @@ export default async function ChatPage() {
         lastName={typedBusiness.last_name}
         email={user.email ?? ""}
       />
-      <div className="min-h-0 flex-1">
-        <ChatApp
-          business={typedBusiness}
-          userName={userName}
-          initialConversations={conversations}
-          initialActiveConversation={initialActiveConversation}
-          initialMessages={initialMessages}
-        />
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <FeatureGate subscription={subscription} feature="basic_ai_analysis">
+          <div className="h-full -m-4">
+            <ChatApp
+              business={typedBusiness}
+              userName={userName}
+              initialConversations={conversations}
+              initialActiveConversation={initialActiveConversation}
+              initialMessages={initialMessages}
+            />
+          </div>
+        </FeatureGate>
       </div>
     </div>
   );

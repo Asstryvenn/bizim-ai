@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateGrowthTool, OpenAINotConfiguredError } from "@/lib/openai";
 import { buildGrowthToolPrompt, getGrowthToolDefinition } from "@/lib/growthTools";
+import { requireFeature } from "@/lib/subscription/serverGuard";
 import type { Business, GrowthToolType } from "@/types";
 
 export async function POST(request: NextRequest) {
@@ -13,6 +14,9 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
   }
+
+  const guard = await requireFeature(supabase, user.id, "ai_content");
+  if (!guard.ok) return guard.response;
 
   const { businessId, analysisId, toolType } = (await request.json()) as {
     businessId: string;

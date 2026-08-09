@@ -126,6 +126,31 @@ export interface GrowthToolResult {
   created_at: string;
 }
 
+// ---------- Подписки / paywall ----------
+
+export type PlanId = "starter" | "growth" | "pro";
+
+export type SubscriptionStatus = "inactive" | "active" | "canceled" | "past_due";
+
+// "demo" — единственный реальный провайдер сейчас (см. DemoPaymentService).
+// Остальные значения зарезервированы под будущую интеграцию.
+export type PaymentProvider = "demo" | "kaspi" | "paypal" | "card" | "bank";
+
+export interface Subscription {
+  id: string;
+  business_id: string;
+  plan: PlanId;
+  status: SubscriptionStatus;
+  provider: PaymentProvider;
+  provider_customer_id: string | null;
+  provider_subscription_id: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  canceled_at: string | null;
+  updated_at: string;
+  created_at: string;
+}
+
 // ---------- Admin Panel ----------
 
 export type UserRole = "admin" | "user";

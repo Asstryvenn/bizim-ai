@@ -4,6 +4,7 @@ import DashboardView from "@/components/DashboardView";
 import BusinessNotFound from "@/components/BusinessNotFound";
 import type { Business, ImportedFile } from "@/types";
 import { computeStats } from "@/lib/analytics";
+import { getPaymentService } from "@/lib/subscription/paymentService";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -42,12 +43,15 @@ export default async function DashboardPage() {
   const rows = latestFile?.parsed_data ?? [];
   const analytics = computeStats(rows);
 
+  const subscription = await getPaymentService(supabase).getSubscription(typedBusiness.id);
+
   return (
     <DashboardView
       business={typedBusiness}
       userEmail={user.email ?? ""}
       files={files}
       analytics={analytics}
+      subscription={subscription}
     />
   );
 }

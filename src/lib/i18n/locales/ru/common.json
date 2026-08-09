@@ -1,6 +1,7 @@
 {
   "nav": {
     "settings": "Настройки",
+    "pricing": "Тарифы",
     "adminPanel": "Admin Panel",
     "logout": "Выйти"
   },
@@ -312,6 +313,79 @@
       "created": "Кампания создана",
       "ready": "Готова к запуску",
       "done": "Готово"
+    }
+  },
+  "subscription": {
+    "paywall": {
+      "title": "Выберите тариф, чтобы открыть Bizim AI",
+      "subtitle": "Эта функция доступна на платных тарифах.",
+      "cta": "Выбрать тариф"
+    },
+    "status": {
+      "plan": "Тариф",
+      "status": "Статус",
+      "renews": "Продление",
+      "free": "Free",
+      "notActive": "Не активен",
+      "active": "Активен",
+      "canceled": "Отменён",
+      "pastDue": "Просрочен платёж",
+      "manage": "Управлять подпиской",
+      "cancelButton": "Отменить подписку",
+      "cancelConfirm": "Отменить текущую подписку?"
+    },
+    "checkout": {
+      "choosePlan": "Выбрать план",
+      "processing": "Активируем...",
+      "demoNotice": "Демо-режим: реальная оплата не подключена, подписка активируется мгновенно для демонстрации.",
+      "success": "Подписка активирована",
+      "perMonth": "/мес",
+      "recommended": "Рекомендуем"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "features": {
+          "dashboard": "Бизнес-дашборд",
+          "excelImport": "Загрузка Excel/CSV",
+          "basicAnalysis": "Базовый AI-анализ продаж",
+          "customerInsights": "Customer Insights",
+          "basicRecommendations": "Базовые рекомендации",
+          "limitedContent": "Ограниченный AI-контент для маркетинга",
+          "limitedCampaigns": "Ограниченное количество кампаний"
+        }
+      },
+      "growth": {
+        "name": "Growth",
+        "features": {
+          "everythingStarter": "Всё из Starter",
+          "advancedAnalysis": "Продвинутый AI-анализ",
+          "externalSignals": "Внешние сигналы: погода, праздники, события, тренды",
+          "smartAlerts": "Smart Alerts",
+          "campaignIntelligence": "Campaign Intelligence",
+          "promotions": "Рекомендации по акциям и лояльности",
+          "moreCampaigns": "Больше AI-анализа и кампаний",
+          "messagingPrepared": "WhatsApp/Telegram — подготовлено для будущей интеграции"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "features": {
+          "everythingGrowth": "Всё из Growth",
+          "automation": "Продвинутая автоматизация",
+          "realtimeMonitoring": "Мониторинг бизнеса в реальном времени",
+          "continuousRecommendations": "Непрерывные AI-рекомендации",
+          "advancedCustomerIntelligence": "Продвинутая аналитика клиентов",
+          "automatedCampaigns": "Автоматические кампании",
+          "priorityAI": "Приоритетные AI-функции",
+          "futureIntegrations": "Будущие интеграции POS/CRM/1С/банков",
+          "highestLimits": "Максимальные лимиты использования"
+        }
+      }
+    },
+    "page": {
+      "title": "Тарифы",
+      "subtitle": "Выберите тариф под задачи вашего бизнеса. Отменить можно в любой момент."
     }
   },
   "landing": {

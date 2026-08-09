@@ -126,6 +126,15 @@ export default function UserMenu({
             {t("nav.settings")}
           </Link>
 
+          <Link
+            href="/dashboard/pricing"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="block rounded-xl px-3 py-2 text-sm text-ink/80 transition hover:bg-mist"
+          >
+            {t("nav.pricing")}
+          </Link>
+
           <div className="my-1 border-t border-border" />
 
           <button

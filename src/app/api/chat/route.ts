@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { streamChatReply, OpenAINotConfiguredError, type OpenAIChatTurn } from "@/lib/openai";
 import { STREAM_ERROR_MARKER, STREAM_META_MARKER, type StreamMeta } from "@/lib/chatStream";
+import { requireFeature } from "@/lib/subscription/serverGuard";
 
 type ChatMode = "send" | "regenerate" | "continue";
 
@@ -37,6 +38,9 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
   }
+
+  const guard = await requireFeature(supabase, user.id, "basic_ai_analysis");
+  if (!guard.ok) return guard.response;
 
   const { conversationId, message, mode = "send", targetMessageId } =
     (await request.json()) as ChatRequestBody;

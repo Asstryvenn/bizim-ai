@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { requireFeature } from "@/lib/subscription/serverGuard";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -11,6 +12,9 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
   }
+
+  const guard = await requireFeature(supabase, user.id, "excel_import");
+  if (!guard.ok) return guard.response;
 
   const body = await request.json();
   const { businessId, fileName, fileType, rows } = body as {

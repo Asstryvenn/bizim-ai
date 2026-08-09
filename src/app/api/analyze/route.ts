@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { computeStats } from "@/lib/analytics";
 import { generateAnalysisReport, OpenAINotConfiguredError } from "@/lib/openai";
+import { requireFeature } from "@/lib/subscription/serverGuard";
 import type { ParsedRow } from "@/types";
 
 export async function POST(request: NextRequest) {
@@ -13,6 +14,9 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
   }
+
+  const guard = await requireFeature(supabase, user.id, "basic_ai_analysis");
+  if (!guard.ok) return guard.response;
 
   const { businessId, fileId } = (await request.json()) as {
     businessId: string;

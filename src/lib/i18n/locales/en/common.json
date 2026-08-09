@@ -1,6 +1,7 @@
 {
   "nav": {
     "settings": "Settings",
+    "pricing": "Pricing",
     "adminPanel": "Admin Panel",
     "logout": "Log out"
   },
@@ -312,6 +313,79 @@
       "created": "Campaign Created",
       "ready": "Ready to Launch",
       "done": "Done"
+    }
+  },
+  "subscription": {
+    "paywall": {
+      "title": "Choose a plan to unlock Bizim AI",
+      "subtitle": "This feature is available on paid plans.",
+      "cta": "Choose plan"
+    },
+    "status": {
+      "plan": "Plan",
+      "status": "Status",
+      "renews": "Renews",
+      "free": "Free",
+      "notActive": "Not active",
+      "active": "Active",
+      "canceled": "Canceled",
+      "pastDue": "Past due",
+      "manage": "Manage subscription",
+      "cancelButton": "Cancel subscription",
+      "cancelConfirm": "Cancel your current subscription?"
+    },
+    "checkout": {
+      "choosePlan": "Choose plan",
+      "processing": "Activating...",
+      "demoNotice": "Demo mode: no real payment is connected — the subscription activates instantly for demonstration purposes.",
+      "success": "Subscription activated",
+      "perMonth": "/month",
+      "recommended": "Recommended"
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "features": {
+          "dashboard": "Business dashboard",
+          "excelImport": "Excel/CSV upload",
+          "basicAnalysis": "Basic AI sales analysis",
+          "customerInsights": "Customer insights",
+          "basicRecommendations": "Basic recommendations",
+          "limitedContent": "Limited AI-generated marketing content",
+          "limitedCampaigns": "Limited campaigns"
+        }
+      },
+      "growth": {
+        "name": "Growth",
+        "features": {
+          "everythingStarter": "Everything in Starter",
+          "advancedAnalysis": "Advanced AI analysis",
+          "externalSignals": "External signals: weather, holidays, local events and trends",
+          "smartAlerts": "Smart alerts",
+          "campaignIntelligence": "Campaign intelligence",
+          "promotions": "Promotions and loyalty recommendations",
+          "moreCampaigns": "More AI analysis and campaigns",
+          "messagingPrepared": "WhatsApp/Telegram — prepared for future integration"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "features": {
+          "everythingGrowth": "Everything in Growth",
+          "automation": "Advanced automation",
+          "realtimeMonitoring": "Real-time business monitoring",
+          "continuousRecommendations": "Continuous AI recommendations",
+          "advancedCustomerIntelligence": "Advanced customer intelligence",
+          "automatedCampaigns": "Automated campaigns",
+          "priorityAI": "Priority AI features",
+          "futureIntegrations": "Future POS/CRM/1C/banking integrations",
+          "highestLimits": "Highest usage limits"
+        }
+      }
+    },
+    "page": {
+      "title": "Pricing",
+      "subtitle": "Choose the plan that fits your business. Cancel anytime."
     }
   },
   "landing": {
