@@ -24,6 +24,7 @@ export function daysOfStockLeft(
   item: Pick<InventoryItem, "current_stock" | "avg_daily_usage" | "forecast_daily_usage" | "days_of_stock">
 ): number | null {
   if (item.days_of_stock !== null && item.days_of_stock !== undefined) return item.days_of_stock;
+  if (item.current_stock === null) return null;
   const { value } = effectiveDailyUsage(item);
   if (!value || value <= 0) return null;
   return item.current_stock / value;
@@ -32,8 +33,9 @@ export function daysOfStockLeft(
 export function getInventoryStatus(
   item: Pick<InventoryItem, "current_stock" | "min_stock" | "desired_stock">
 ): InventoryStatus {
-  if (item.min_stock > 0 && item.current_stock <= item.min_stock * 0.5) return "critical";
-  if (item.min_stock > 0 && item.current_stock <= item.min_stock) return "low";
+  if (item.current_stock === null) return "unknown";
+  if (item.min_stock !== null && item.min_stock > 0 && item.current_stock <= item.min_stock * 0.5) return "critical";
+  if (item.min_stock !== null && item.min_stock > 0 && item.current_stock <= item.min_stock) return "low";
   if (item.desired_stock > 0 && item.current_stock > item.desired_stock * 1.5) return "excess";
   return "ok";
 }
@@ -43,6 +45,7 @@ export const INVENTORY_STATUS_LABEL: Record<InventoryStatus, string> = {
   low: "Скоро закончится",
   critical: "Критический остаток",
   excess: "Избыток",
+  unknown: "Остаток не указан",
 };
 
 // ---------------------------------------------------------------------------
@@ -51,8 +54,10 @@ export const INVENTORY_STATUS_LABEL: Record<InventoryStatus, string> = {
 
 export function recommendedOrderQty(
   item: Pick<InventoryItem, "current_stock" | "min_stock" | "desired_stock">
-): number {
-  const target = item.desired_stock > 0 ? item.desired_stock : item.min_stock * 2;
+): number | null {
+  if (item.current_stock === null) return null;
+  const minStock = item.min_stock ?? 0;
+  const target = item.desired_stock > 0 ? item.desired_stock : minStock * 2;
   const qty = target - item.current_stock;
   return qty > 0 ? Math.ceil(qty) : 0;
 }
@@ -167,8 +172,8 @@ export function generateRecommendations(
     const status = getInventoryStatus(item);
     const days = daysOfStockLeft(item);
 
-    if (status === "critical" || status === "low") {
-      const qty = recommendedOrderQty(item);
+    if ((status === "critical" || status === "low") && item.current_stock !== null) {
+      const qty = recommendedOrderQty(item) ?? 0;
       const daysLabel =
         days === null ? "неизвестно" : days < 1 ? "меньше суток" : `${days.toFixed(1)} дня`;
       recs.push({
@@ -178,7 +183,7 @@ export function generateRecommendations(
       });
     }
 
-    if (status === "excess" && days !== null) {
+    if (status === "excess" && days !== null && item.current_stock !== null) {
       recs.push({
         id: `excess-${item.id}`,
         severity: "info",

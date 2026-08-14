@@ -6,6 +6,7 @@ const INVENTORY_STATUS_CLASSES: Record<InventoryStatus, string> = {
   low: "bg-[rgb(234,179,8)]/10 text-[rgb(161,98,7)]",
   critical: "bg-danger/10 text-danger",
   excess: "bg-accent-soft text-accent",
+  unknown: "bg-mist text-ink/40",
 };
 
 export function InventoryStatusBadge({ status }: { status: InventoryStatus }) {

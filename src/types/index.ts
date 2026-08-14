@@ -229,7 +229,7 @@ export interface Supplier {
   created_at: string;
 }
 
-export type InventoryStatus = "ok" | "low" | "critical" | "excess";
+export type InventoryStatus = "ok" | "low" | "critical" | "excess" | "unknown";
 
 export interface InventoryItem {
   id: string;
@@ -237,8 +237,10 @@ export interface InventoryItem {
   name: string;
   category: string;
   unit: string;
-  current_stock: number;
-  min_stock: number;
+  // NULL = остаток/минимум неизвестны (например импорт продаж без колонки
+  // остатка) — честно отличается от "0 на складе".
+  current_stock: number | null;
+  min_stock: number | null;
   desired_stock: number;
   // Введено пользователем вручную "на глаз" — используется, пока нет
   // реальной истории продаж. Как только появляются sales, приоритет у

@@ -60,7 +60,7 @@ function median(values: number[]): number {
 
 export function computeProductMetrics(
   sales: Pick<Sale, "sold_at" | "quantity">[],
-  params: { currentStock: number; minStock: number; desiredStock: number }
+  params: { currentStock: number | null; minStock: number | null; desiredStock: number }
 ): ProductMetrics {
   const empty: ProductMetrics = {
     hasSalesHistory: false,
@@ -139,14 +139,18 @@ export function computeProductMetrics(
   let stockoutDate: string | null = null;
   let recommendedOrderQuantity: number | null = null;
 
-  if (averageDailyUsage && averageDailyUsage > 0) {
+  // days_of_stock/stockout/рекомендуемый заказ требуют ЗНАТЬ текущий
+  // остаток — если его нет (импорт без колонки остатка), честно оставляем
+  // эти поля null вместо того, чтобы считать от несуществующего "0".
+  if (averageDailyUsage && averageDailyUsage > 0 && params.currentStock !== null) {
     daysOfStock = params.currentStock / averageDailyUsage;
     const stockout = new Date(now);
     stockout.setUTCDate(stockout.getUTCDate() + Math.floor(daysOfStock));
     stockoutDate = stockout.toISOString().slice(0, 10);
 
+    const minStock = params.minStock ?? 0;
     const coverageTarget =
-      params.desiredStock > 0 ? params.desiredStock : Math.max(params.minStock * 2, averageDailyUsage * 14);
+      params.desiredStock > 0 ? params.desiredStock : Math.max(minStock * 2, averageDailyUsage * 14);
     const qty = coverageTarget - params.currentStock;
     recommendedOrderQuantity = qty > 0 ? Math.ceil(qty) : 0;
   }

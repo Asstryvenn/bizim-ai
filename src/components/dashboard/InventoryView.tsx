@@ -30,6 +30,7 @@ const STATUS_FILTERS: { value: InventoryStatus | "all"; label: string }[] = [
   { value: "low", label: "Скоро закончится" },
   { value: "ok", label: "В норме" },
   { value: "excess", label: "Избыток" },
+  { value: "unknown", label: "Остаток не указан" },
 ];
 
 const emptyForm = {
@@ -54,6 +55,9 @@ export default function InventoryView({ business, initialItems, suppliers, order
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [reorderingId, setReorderingId] = useState<string | null>(null);
+  const [stockEditItem, setStockEditItem] = useState<InventoryItem | null>(null);
+  const [stockValue, setStockValue] = useState("");
+  const [savingStock, setSavingStock] = useState(false);
 
   const supplierById = useMemo(() => new Map(suppliers.map((s) => [s.id, s])), [suppliers]);
   const scoredSuppliers = useMemo(() => scoreSuppliers(suppliers, orders), [suppliers, orders]);
@@ -125,6 +129,32 @@ export default function InventoryView({ business, initialItems, suppliers, order
       toast.error(err instanceof Error ? err.message : "Не удалось создать заказ");
     } finally {
       setReorderingId(null);
+    }
+  };
+
+  const handleSaveStock = async () => {
+    if (!stockEditItem) return;
+    const parsed = Number(stockValue);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      toast.error("Введите корректное число");
+      return;
+    }
+    setSavingStock(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("inventory_items")
+        .update({ current_stock: parsed })
+        .eq("id", stockEditItem.id);
+      if (error) throw new Error(error.message);
+      setItems((prev) => prev.map((i) => (i.id === stockEditItem.id ? { ...i, current_stock: parsed } : i)));
+      setStockEditItem(null);
+      toast.success("Остаток обновлён");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Не удалось сохранить остаток");
+    } finally {
+      setSavingStock(false);
     }
   };
 
@@ -204,10 +234,23 @@ export default function InventoryView({ business, initialItems, suppliers, order
                       <td className="px-4 py-3 font-medium">{item.name}</td>
                       <td className="px-4 py-3 text-ink/60">{item.category}</td>
                       <td className="px-4 py-3">
-                        {item.current_stock} {item.unit}
+                        {item.current_stock !== null ? (
+                          `${item.current_stock} ${item.unit}`
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setStockEditItem(item);
+                              setStockValue("");
+                            }}
+                            className="text-accent text-xs font-medium underline underline-offset-2"
+                          >
+                            Указать остаток
+                          </button>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-ink/60">
-                        {item.min_stock} {item.unit}
+                        {item.min_stock !== null ? `${item.min_stock} ${item.unit}` : "нет данных"}
                       </td>
                       <td className="px-4 py-3 text-ink/60">
                         {usage.value === null ? (
@@ -382,6 +425,42 @@ export default function InventoryView({ business, initialItems, suppliers, order
       )}
 
       {showImport && <ProductImportModal onClose={() => setShowImport(false)} />}
+
+      {stockEditItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4"
+          onClick={() => setStockEditItem(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-card space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-semibold tracking-tight">Указать остаток «{stockEditItem.name}»</h2>
+            <div>
+              <label className="label">
+                Текущий остаток ({stockEditItem.unit})
+              </label>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                className="input"
+                autoFocus
+                value={stockValue}
+                onChange={(e) => setStockValue(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => setStockEditItem(null)} className="btn-secondary">
+                Отмена
+              </button>
+              <button type="button" onClick={handleSaveStock} disabled={savingStock} className="btn-primary">
+                {savingStock ? "Сохранение..." : "Сохранить"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
