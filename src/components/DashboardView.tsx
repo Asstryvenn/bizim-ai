@@ -25,7 +25,8 @@ import CampaignBuilderModal, {
 import { buildAIInsightsBundle, type CampaignSeed } from "@/lib/aiInsights";
 import FeatureGate from "@/components/subscription/FeatureGate";
 import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatusCard";
-import type { Business, ImportedFile, Subscription } from "@/types";
+import SupplyChainSummary from "@/components/dashboard/SupplyChainSummary";
+import type { Business, ImportedFile, InventoryItem, PurchaseOrderWithDetails, Subscription, Supplier } from "@/types";
 import type { ComputedStats } from "@/lib/analytics";
 import i18n from "@/lib/i18n";
 
@@ -35,6 +36,9 @@ interface DashboardViewProps {
   files: ImportedFile[];
   analytics: ComputedStats;
   subscription: Subscription | null;
+  inventoryItems: InventoryItem[];
+  suppliers: Supplier[];
+  orders: PurchaseOrderWithDetails[];
 }
 
 // Вся презентационная часть /dashboard вынесена сюда как клиентский компонент,
@@ -46,6 +50,9 @@ export default function DashboardView({
   files,
   analytics,
   subscription,
+  inventoryItems,
+  suppliers,
+  orders,
 }: DashboardViewProps) {
   const { t, i18n: i18next } = useTranslation();
   const locale = i18n.language === "en" ? "en-US" : "ru-RU";
@@ -130,6 +137,9 @@ export default function DashboardView({
         </section>
 
         <AIThinking />
+
+        {/* ---------- Снабжение и логистика (SERPIN BUSINESS TOURNAMENT) ---------- */}
+        <SupplyChainSummary items={inventoryItems} suppliers={suppliers} orders={orders} />
 
         {/* ---------- Подписка ---------- */}
         <SubscriptionStatusCard subscription={subscription} />

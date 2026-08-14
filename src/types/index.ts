@@ -206,3 +206,96 @@ export interface AdminTopBusiness {
   growth_tools_count: number;
   last_activity: string | null;
 }
+
+// ---------- Снабжение и логистика (SERPIN BUSINESS TOURNAMENT) ----------
+
+export interface Supplier {
+  id: string;
+  business_id: string;
+  name: string;
+  category: string;
+  price_index: number;
+  avg_delivery_days: number;
+  delay_rate: number;
+  orders_count: number;
+  updated_at: string;
+  created_at: string;
+}
+
+export type InventoryStatus = "ok" | "low" | "critical" | "excess";
+
+export interface InventoryItem {
+  id: string;
+  business_id: string;
+  name: string;
+  category: string;
+  unit: string;
+  current_stock: number;
+  min_stock: number;
+  desired_stock: number;
+  avg_daily_usage: number;
+  supplier_id: string | null;
+  updated_at: string;
+  created_at: string;
+}
+
+export interface InventoryItemWithSupplier extends InventoryItem {
+  supplier: Supplier | null;
+}
+
+export type OrderStatus = "draft" | "sent" | "confirmed" | "in_transit" | "delivered" | "delayed";
+
+export interface PurchaseOrder {
+  id: string;
+  business_id: string;
+  supplier_id: string;
+  status: OrderStatus;
+  total_amount: number;
+  expected_delivery: string | null;
+  actual_delivery: string | null;
+  updated_at: string;
+  created_at: string;
+}
+
+export interface PurchaseOrderItem {
+  id: string;
+  order_id: string;
+  inventory_item_id: string;
+  quantity: number;
+  unit_price: number;
+  created_at: string;
+}
+
+export interface PurchaseOrderWithDetails extends PurchaseOrder {
+  supplier: Supplier | null;
+  items: (PurchaseOrderItem & { item: InventoryItem | null })[];
+}
+
+export interface ActivityLogEntry {
+  id: string;
+  business_id: string;
+  action: string;
+  description: string;
+  created_at: string;
+}
+
+export interface BusinessTool {
+  id: string;
+  business_id: string;
+  tool_key: string;
+  is_favorite: boolean;
+  is_active: boolean;
+  updated_at: string;
+  created_at: string;
+}
+
+export type ToolCategory = "Склад" | "Закупки" | "Поставщики" | "Аналитика" | "Уведомления";
+
+export interface ToolDefinition {
+  key: string;
+  title: string;
+  description: string;
+  category: ToolCategory;
+  href: string;
+  icon: string;
+}

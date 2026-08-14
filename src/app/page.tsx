@@ -223,6 +223,55 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ---------- Снабжение и логистика (SERPIN BUSINESS TOURNAMENT) ---------- */}
+      <section className="max-w-6xl mx-auto w-full px-6 py-4">
+        <div className="card overflow-hidden">
+          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-8 items-center">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
+                📦 Новое: снабжение и логистика
+              </span>
+              <h3 className="mt-4 text-2xl md:text-3xl font-semibold tracking-tight">
+                Управляйте запасами и закупками без сложной ERP
+              </h3>
+              <p className="mt-3 text-sm text-ink/60 leading-relaxed max-w-md">
+                Bizim следит за остатками, сам считает, когда и сколько заказывать, сравнивает
+                поставщиков и предупреждает о рисках дефицита — до того, как товар закончится.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/register" className="btn-primary text-sm">
+                  Начать использовать
+                </Link>
+                <Link href="/register" className="btn-secondary text-sm">
+                  Проверить остатки
+                </Link>
+                <Link href="/register" className="btn-secondary text-sm">
+                  Добавить поставщика
+                </Link>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-mist p-4">
+                <p className="text-xs text-ink/50">Товаров под риском</p>
+                <p className="mt-1 text-2xl font-bold">3</p>
+              </div>
+              <div className="rounded-xl bg-mist p-4">
+                <p className="text-xs text-ink/50">Экономия в месяц</p>
+                <p className="mt-1 text-2xl font-bold text-success">₸84 500</p>
+              </div>
+              <div className="rounded-xl bg-mist p-4">
+                <p className="text-xs text-ink/50">Поставок в пути</p>
+                <p className="mt-1 text-2xl font-bold">4</p>
+              </div>
+              <div className="rounded-xl bg-mist p-4">
+                <p className="text-xs text-ink/50">Заказов можно автоматизировать</p>
+                <p className="mt-1 text-2xl font-bold text-accent">6</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ---------- Features ---------- */}
       <section id="features" className="max-w-6xl mx-auto w-full px-6 py-24 scroll-mt-20">
         <div className="max-w-xl">
