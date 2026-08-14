@@ -23,12 +23,12 @@ export default async function SharedConversationPage({
 
   // Публичная страница читает данные через Service Role (не через RLS от
   // имени посетителя — у него нет сессии), поэтому доступ строго ограничен
-  // тут, в коде: только share_enabled = true и точное совпадение share_id.
+  // тут, в коде: только shared = true и точное совпадение share_id.
   const { data: conversation } = await supabase
     .from("chat_conversations")
-    .select("id, title, created_at, share_enabled, business_id, businesses(business_name)")
+    .select("id, title, created_at, shared, business_id, businesses(business_name)")
     .eq("share_id", shareId)
-    .eq("share_enabled", true)
+    .eq("shared", true)
     .single();
 
   if (!conversation) {

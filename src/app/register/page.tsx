@@ -104,13 +104,6 @@ export default function RegisterPage() {
       user_id: userId,
       first_name: values.firstName,
       last_name: values.lastName,
-      // owner_name/email — устаревшие NOT NULL колонки в текущей схеме businesses
-      // (появились раньше first_name/last_name/business_type и т.п., но не были
-      // удалены/ослаблены при добавлении новых полей). Раньше insert их не
-      // заполнял вовсе, из-за чего регистрация падала с
-      // "null value in column \"owner_name\" ... violates not-null constraint".
-      owner_name: `${values.firstName} ${values.lastName}`.trim(),
-      email: values.email,
       business_name: values.businessName,
       business_type: values.businessType,
       city: values.city,
