@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { registerSchema, type RegisterSchema, BUSINESS_TYPES } from "@/lib/validation";
+import { registerSchema, type RegisterSchema, BUSINESS_TYPES, CURRENCIES } from "@/lib/validation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function RegisterPage() {
@@ -47,10 +47,12 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      currency: "KZT",
       employeesCount: 0,
       clientsToday: 0,
       clientsWeek: 0,
@@ -59,6 +61,8 @@ export default function RegisterPage() {
       averageCheck: 0,
     },
   });
+
+  const businessType = watch("businessType");
 
   const onSubmit = async (values: RegisterSchema) => {
     setServerError(null);
@@ -89,7 +93,12 @@ export default function RegisterPage() {
           last_name: values.lastName,
           business_name: values.businessName,
           business_type: values.businessType,
+          business_type_other: values.businessType === "other" ? values.businessTypeOther : null,
           city: values.city,
+          address: values.address,
+          phone: values.phone || null,
+          whatsapp_phone: values.whatsappPhone || null,
+          currency: values.currency,
           employees_count: values.employeesCount,
           average_check: values.averageCheck,
           work_hours_from: values.workHoursFrom,
@@ -254,9 +263,49 @@ export default function RegisterPage() {
                 )}
               </div>
             </div>
+
+            {businessType === "other" && (
+              <div>
+                <label className="label">{t("auth.register.businessTypeOther")}</label>
+                <input className="input" {...register("businessTypeOther")} />
+              </div>
+            )}
+
             <div>
-              <label className="label">{t("auth.register.employeesCount")}</label>
-              <input type="number" className="input" {...register("employeesCount")} />
+              <label className="label">{t("auth.register.address")}</label>
+              <input className="input" {...register("address")} />
+              <p className="text-xs text-ink/40 mt-1">{t("auth.register.addressHint")}</p>
+              {errors.address && (
+                <p className="text-danger text-xs mt-1">{t(errors.address.message ?? "")}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">{t("auth.register.phone")}</label>
+                <input className="input" placeholder="+7 ..." {...register("phone")} />
+              </div>
+              <div>
+                <label className="label">{t("auth.register.whatsappPhone")}</label>
+                <input className="input" placeholder="+7 ..." {...register("whatsappPhone")} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">{t("auth.register.employeesCount")}</label>
+                <input type="number" className="input" {...register("employeesCount")} />
+              </div>
+              <div>
+                <label className="label">{t("auth.register.currency")}</label>
+                <select className="input" {...register("currency")}>
+                  {CURRENCIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </section>
 

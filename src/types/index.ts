@@ -13,7 +13,16 @@ export interface Business {
   last_name: string;
   business_name: string;
   business_type: string;
+  // Свободный текст, только когда business_type === "other" — не подменяет сам тип.
+  business_type_other: string | null;
   city: string;
+  country: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  phone: string | null;
+  whatsapp_phone: string | null;
+  currency: string;
   employees_count: number;
   clients_today: number;
   clients_week: number;
@@ -223,8 +232,11 @@ export interface Supplier {
   delay_rate: number | null;
   orders_count: number;
   phone: string | null;
+  whatsapp_phone: string | null;
   website: string | null;
   address: string | null;
+  city: string | null;
+  notes: string | null;
   updated_at: string;
   created_at: string;
 }
@@ -275,11 +287,27 @@ export interface InventoryItemWithSupplier extends InventoryItem {
 
 export type OrderStatus = "draft" | "sent" | "confirmed" | "in_transit" | "delivered" | "delayed";
 
+export type ExternalOrderStatus = "sent_via_whatsapp" | "confirmed_by_supplier";
+export type PaymentStatus = "unpaid" | "paid";
+
 export interface PurchaseOrder {
   id: string;
   business_id: string;
   supplier_id: string;
+  // Внутренний статус — то, что пользователь отметил вручную внутри Bizim
+  // (кнопка "Отметить вручную"). НЕ означает, что это реально произошло
+  // у поставщика — см. external_status для реально подтверждённых событий.
   status: OrderStatus;
+  // NULL, пока ничего не отправлено реальным каналом; 'sent_via_whatsapp'
+  // проставляется ТОЛЬКО после успешного ответа WhatsApp Cloud API.
+  external_status: ExternalOrderStatus | null;
+  // Всегда 'unpaid', пока нет реального payment provider — никогда не
+  // проставляется 'paid' автоматически.
+  payment_status: PaymentStatus;
+  whatsapp_message_id: string | null;
+  sent_at: string | null;
+  confirmed_at: string | null;
+  delivered_at: string | null;
   // NULL = цена ещё не подтверждена поставщиком, показывать честно, а не "0 ₸".
   total_amount: number | null;
   expected_delivery: string | null;
@@ -305,8 +333,12 @@ export interface PurchaseOrderWithDetails extends PurchaseOrder {
 export interface ActivityLogEntry {
   id: string;
   business_id: string;
+  user_id: string | null;
   action: string;
   description: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
 }
 

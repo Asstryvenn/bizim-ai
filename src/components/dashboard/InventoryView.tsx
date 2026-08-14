@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { createInventoryItem, createReorderFromItem } from "@/lib/supplyChainActions";
+import { createInventoryItem, createOrderDraft } from "@/lib/supplyChainActions";
 import {
   daysOfStockLeft,
   effectiveDailyUsage,
@@ -114,7 +114,7 @@ export default function InventoryView({ business, initialItems, suppliers, order
       const supabase = createClient();
       const qty = recommendedOrderQty(item);
       const metrics = computeSupplierMetrics(supplier.id, orders);
-      await createReorderFromItem(
+      await createOrderDraft(
         supabase,
         business.id,
         item,
@@ -122,7 +122,7 @@ export default function InventoryView({ business, initialItems, suppliers, order
         qty || item.min_stock || 10,
         metrics.avgDeliveryDays
       );
-      toast.success(`Заказ на «${item.name}» сформирован и отправлен поставщику «${supplier.name}»`);
+      toast.success(`Черновик заказа на «${item.name}» создан — откройте его в «Заказах», чтобы отправить поставщику «${supplier.name}»`);
       router.push("/dashboard/orders");
       router.refresh();
     } catch (err) {

@@ -26,6 +26,7 @@ import { buildAIInsightsBundle, type CampaignSeed } from "@/lib/aiInsights";
 import FeatureGate from "@/components/subscription/FeatureGate";
 import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatusCard";
 import SupplyChainSummary from "@/components/dashboard/SupplyChainSummary";
+import AiInsightsPanel from "@/components/dashboard/AiInsightsPanel";
 import type { Business, ImportedFile, InventoryItem, PurchaseOrderWithDetails, Subscription, Supplier } from "@/types";
 import type { ComputedStats } from "@/lib/analytics";
 import { formatKzt, formatCount } from "@/lib/format";
@@ -141,6 +142,8 @@ export default function DashboardView({
 
         {/* ---------- Снабжение и логистика (SERPIN BUSINESS TOURNAMENT) ---------- */}
         <SupplyChainSummary items={inventoryItems} suppliers={suppliers} orders={orders} />
+
+        <AiInsightsPanel />
 
         {/* ---------- Подписка ---------- */}
         <SubscriptionStatusCard subscription={subscription} />

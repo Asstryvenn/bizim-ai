@@ -10,7 +10,12 @@ export const registerSchema = z.object({
   password: z.string().min(6, "validation.passwordMin"),
   businessName: z.string().min(1, "validation.businessNameRequired"),
   businessType: z.string().min(1, "validation.businessTypeRequired"),
+  businessTypeOther: z.string().optional().default(""),
   city: z.string().min(1, "validation.cityRequired"),
+  address: z.string().min(1, "validation.addressRequired"),
+  phone: z.string().optional().default(""),
+  whatsappPhone: z.string().optional().default(""),
+  currency: z.string().min(1).default("KZT"),
   employeesCount: z.coerce.number().int().min(0),
   clientsToday: z.coerce.number().int().min(0),
   clientsWeek: z.coerce.number().int().min(0),
@@ -45,10 +50,18 @@ export type SettingsSchema = z.infer<typeof settingsSchema>;
 // см. lib/growthTools.ts, где язык ответа AI сознательно не меняется).
 // labelKey — ключ i18n (namespace "business.types") для отображения в UI.
 export const BUSINESS_TYPES: { value: string; label: string; labelKey: string }[] = [
-  { value: "cafe", label: "Кафе / ресторан", labelKey: "business.types.cafe" },
+  { value: "cafe", label: "Кафе", labelKey: "business.types.cafe" },
+  { value: "restaurant", label: "Ресторан", labelKey: "business.types.restaurant" },
+  { value: "coffee_shop", label: "Кофейня", labelKey: "business.types.coffee_shop" },
   { value: "shop", label: "Магазин", labelKey: "business.types.shop" },
+  { value: "mini_market", label: "Мини-маркет", labelKey: "business.types.mini_market" },
+  { value: "bakery", label: "Пекарня", labelKey: "business.types.bakery" },
   { value: "salon", label: "Салон красоты", labelKey: "business.types.salon" },
+  { value: "barbershop", label: "Барбершоп", labelKey: "business.types.barbershop" },
   { value: "pharmacy", label: "Аптека", labelKey: "business.types.pharmacy" },
+  { value: "online_shop", label: "Интернет-магазин", labelKey: "business.types.online_shop" },
   { value: "carwash", label: "Автомойка", labelKey: "business.types.carwash" },
   { value: "other", label: "Другое", labelKey: "business.types.other" },
 ];
+
+export const CURRENCIES = ["KZT", "RUB", "USD", "EUR"] as const;

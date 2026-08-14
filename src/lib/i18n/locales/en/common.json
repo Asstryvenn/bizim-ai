@@ -128,15 +128,22 @@
     "businessNameRequired": "Enter your business name",
     "businessTypeRequired": "Select a business type",
     "cityRequired": "Enter your city",
+    "addressRequired": "Enter your business address",
     "workHoursFromRequired": "Enter the opening time",
     "workHoursToRequired": "Enter the closing time"
   },
   "business": {
     "types": {
-      "cafe": "Cafe / restaurant",
+      "cafe": "Cafe",
+      "restaurant": "Restaurant",
+      "coffee_shop": "Coffee shop",
       "shop": "Shop",
+      "mini_market": "Mini-market",
+      "bakery": "Bakery",
       "salon": "Beauty salon",
+      "barbershop": "Barbershop",
       "pharmacy": "Pharmacy",
+      "online_shop": "Online shop",
       "carwash": "Car wash",
       "other": "Other"
     }
@@ -480,8 +487,14 @@
         "operational": "Operational details"
       },
       "businessType": "Business type",
+      "businessTypeOther": "Please specify your business type",
       "chooseOption": "Choose...",
       "city": "City",
+      "address": "Business address",
+      "addressHint": "Used for analytics, supplier recommendations, and future map integrations.",
+      "phone": "Business phone",
+      "whatsappPhone": "Business WhatsApp (if different)",
+      "currency": "Currency",
       "employeesCount": "Number of employees",
       "clientsToday": "Clients today",
       "clientsWeek": "Clients this week",

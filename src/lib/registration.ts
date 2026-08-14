@@ -11,7 +11,12 @@ export interface PendingBusinessMetadata {
   last_name?: string;
   business_name?: string;
   business_type?: string;
+  business_type_other?: string | null;
   city?: string;
+  address?: string;
+  phone?: string | null;
+  whatsapp_phone?: string | null;
+  currency?: string;
   employees_count?: number;
   average_check?: number;
   work_hours_from?: string;
@@ -62,7 +67,12 @@ export async function ensureBusinessProfile(supabase: SupabaseClient, user: User
     last_name: meta.last_name ?? "",
     business_name: meta.business_name,
     business_type: meta.business_type,
+    business_type_other: meta.business_type_other ?? null,
     city: meta.city,
+    address: meta.address ?? null,
+    phone: meta.phone ?? null,
+    whatsapp_phone: meta.whatsapp_phone ?? null,
+    currency: meta.currency ?? "KZT",
     employees_count: meta.employees_count ?? 0,
     average_check: meta.average_check ?? 0,
     work_hours_from: meta.work_hours_from ?? null,

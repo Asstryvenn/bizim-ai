@@ -4,6 +4,7 @@ import DashboardNav from "@/components/DashboardNav";
 import SettingsForm from "@/components/SettingsForm";
 import SettingsHeader from "@/components/SettingsHeader";
 import PreferencesSettings from "@/components/PreferencesSettings";
+import WhatsAppSettings from "@/components/WhatsAppSettings";
 import type { Business } from "@/types";
 
 export default async function SettingsPage() {
@@ -42,6 +43,8 @@ export default async function SettingsPage() {
         <SettingsHeader />
 
         <SettingsForm business={typedBusiness} email={user.email ?? ""} />
+
+        <WhatsAppSettings business={typedBusiness} />
 
         <PreferencesSettings />
       </div>

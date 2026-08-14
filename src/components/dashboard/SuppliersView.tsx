@@ -18,8 +18,11 @@ const emptyForm = {
   name: "",
   category: "Поставщики",
   phone: "",
+  whatsappPhone: "",
   website: "",
   address: "",
+  city: "",
+  notes: "",
 };
 
 export default function SuppliersView({ business, initialSuppliers, orders }: SuppliersViewProps) {
@@ -46,8 +49,11 @@ export default function SuppliersView({ business, initialSuppliers, orders }: Su
         name: form.name.trim(),
         category: form.category.trim() || "Поставщики",
         phone: form.phone.trim() || null,
+        whatsapp_phone: form.whatsappPhone.trim() || null,
         website: form.website.trim() || null,
         address: form.address.trim() || null,
+        city: form.city.trim() || null,
+        notes: form.notes.trim() || null,
       });
       setSuppliers((prev) => [created, ...prev]);
       setForm(emptyForm);
@@ -106,8 +112,9 @@ export default function SuppliersView({ business, initialSuppliers, orders }: Su
                     </td>
                     <td className="px-4 py-3 text-ink/60 text-xs space-y-0.5">
                       {supplier.phone && <p>📞 {supplier.phone}</p>}
+                      {supplier.whatsapp_phone && <p>💬 {supplier.whatsapp_phone}</p>}
                       {supplier.website && <p>🌐 {supplier.website}</p>}
-                      {supplier.address && <p>📍 {supplier.address}</p>}
+                      {supplier.address && <p>📍 {supplier.address}{supplier.city ? `, ${supplier.city}` : ""}</p>}
                       {!supplier.phone && !supplier.website && !supplier.address && (
                         <span className="text-ink/30">Контакты не указаны</span>
                       )}
@@ -201,6 +208,25 @@ export default function SuppliersView({ business, initialSuppliers, orders }: Su
             </div>
 
             <div>
+              <label className="label">WhatsApp (если отличается от телефона)</label>
+              <input
+                className="input"
+                value={form.whatsappPhone}
+                onChange={(e) => setForm({ ...form, whatsappPhone: e.target.value })}
+                placeholder="+7 ..."
+              />
+            </div>
+
+            <div>
+              <label className="label">Город</label>
+              <input
+                className="input"
+                value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+              />
+            </div>
+
+            <div>
               <label className="label">Сайт</label>
               <input
                 className="input"
@@ -216,6 +242,16 @@ export default function SuppliersView({ business, initialSuppliers, orders }: Su
                 className="input"
                 value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="label">Заметки</label>
+              <textarea
+                className="input"
+                rows={2}
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
               />
             </div>
 

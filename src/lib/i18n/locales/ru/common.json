@@ -128,15 +128,22 @@
     "businessNameRequired": "Укажите название бизнеса",
     "businessTypeRequired": "Выберите тип бизнеса",
     "cityRequired": "Укажите город",
+    "addressRequired": "Укажите адрес бизнеса",
     "workHoursFromRequired": "Укажите время начала работы",
     "workHoursToRequired": "Укажите время окончания работы"
   },
   "business": {
     "types": {
-      "cafe": "Кафе / ресторан",
+      "cafe": "Кафе",
+      "restaurant": "Ресторан",
+      "coffee_shop": "Кофейня",
       "shop": "Магазин",
+      "mini_market": "Мини-маркет",
+      "bakery": "Пекарня",
       "salon": "Салон красоты",
+      "barbershop": "Барбершоп",
       "pharmacy": "Аптека",
+      "online_shop": "Интернет-магазин",
       "carwash": "Автомойка",
       "other": "Другое"
     }
@@ -480,8 +487,14 @@
         "operational": "Операционные детали"
       },
       "businessType": "Тип бизнеса",
+      "businessTypeOther": "Уточните тип бизнеса",
       "chooseOption": "Выберите...",
       "city": "Город",
+      "address": "Адрес бизнеса",
+      "addressHint": "Используется для аналитики, рекомендаций поставщиков и будущих интеграций с картами.",
+      "phone": "Телефон бизнеса",
+      "whatsappPhone": "WhatsApp бизнеса (если отличается)",
+      "currency": "Валюта",
       "employeesCount": "Количество сотрудников",
       "clientsToday": "Клиентов сегодня",
       "clientsWeek": "Клиентов за неделю",

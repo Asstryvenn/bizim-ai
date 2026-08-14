@@ -1,16 +1,25 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { InventoryItem, OrderStatus, Supplier } from "@/types";
 
-// Общий хелпер: пишет запись в activity_log для истории действий бизнеса
-// (dashboard/account). Ошибки логирования не должны ломать основной сценарий,
-// поэтому не бросаем исключение наружу.
+// Общий хелпер: пишет запись в activity_log для истории действий бизнеса.
+// Ошибки логирования не должны ломать основной сценарий, поэтому не
+// бросаем исключение наружу. entityType/entityId/metadata — опциональны,
+// чтобы не переписывать все существующие вызовы разом.
 export async function logActivity(
   supabase: SupabaseClient,
   businessId: string,
   action: string,
-  description: string
+  description: string,
+  extra?: { entityType?: string; entityId?: string; metadata?: Record<string, unknown> }
 ) {
-  await supabase.from("activity_log").insert({ business_id: businessId, action, description });
+  await supabase.from("activity_log").insert({
+    business_id: businessId,
+    action,
+    description,
+    entity_type: extra?.entityType ?? null,
+    entity_id: extra?.entityId ?? null,
+    metadata: extra?.metadata ?? null,
+  });
 }
 
 export interface NewInventoryItemInput {
@@ -30,7 +39,10 @@ export interface NewInventoryItemInput {
 export async function createInventoryItem(supabase: SupabaseClient, input: NewInventoryItemInput) {
   const { data, error } = await supabase.from("inventory_items").insert(input).select().single();
   if (error) throw new Error(error.message);
-  await logActivity(supabase, input.business_id, "item_added", `Добавлен товар «${input.name}»`);
+  await logActivity(supabase, input.business_id, "item_added", `Добавлен товар «${input.name}»`, {
+    entityType: "inventory_item",
+    entityId: data.id,
+  });
   return data as InventoryItem;
 }
 
@@ -39,23 +51,29 @@ export interface NewSupplierInput {
   name: string;
   category: string;
   phone: string | null;
+  whatsapp_phone: string | null;
   website: string | null;
   address: string | null;
+  city: string | null;
+  notes: string | null;
 }
 
 export async function createSupplier(supabase: SupabaseClient, input: NewSupplierInput) {
   const { data, error } = await supabase.from("suppliers").insert(input).select().single();
   if (error) throw new Error(error.message);
-  await logActivity(supabase, input.business_id, "supplier_added", `Добавлен поставщик «${input.name}»`);
+  await logActivity(supabase, input.business_id, "supplier_added", `Добавлен поставщик «${input.name}»`, {
+    entityType: "supplier",
+    entityId: data.id,
+  });
   return data as Supplier;
 }
 
-// Автозаказ: создаёт заказ сразу с одной позицией (сам товар, требующий
-// пополнения) и статусом "sent". Цена и срок доставки — только если они
-// реально известны (purchase_price товара / посчитанный avgDeliveryDays
-// поставщика из его истории заказов), иначе честно остаются NULL —
-// "цена/срок будут подтверждены поставщиком", а не выдуманное число.
-export async function createReorderFromItem(
+// AI/пользователь обнаружил риск дефицита и предлагает закупку — создаёт
+// ТОЛЬКО черновик (status: 'draft'). Ничего не отправляется поставщику
+// автоматически: отправка — отдельное явное действие пользователя
+// (см. sendOrderViaWhatsApp в lib/whatsapp/orderMessage.ts). Цена и срок
+// доставки — только если реально известны, иначе честно NULL.
+export async function createOrderDraft(
   supabase: SupabaseClient,
   businessId: string,
   item: InventoryItem,
@@ -75,7 +93,7 @@ export async function createReorderFromItem(
     .insert({
       business_id: businessId,
       supplier_id: supplier.id,
-      status: "sent",
+      status: "draft",
       total_amount: totalAmount,
       expected_delivery: expectedDelivery,
     })
@@ -96,8 +114,9 @@ export async function createReorderFromItem(
   await logActivity(
     supabase,
     businessId,
-    "order_created",
-    `Создан автозаказ «${item.name}» (${quantity} ${item.unit}) у поставщика «${supplier.name}»`
+    "order_draft_created",
+    `Создан черновик заказа «${item.name}» (${quantity} ${item.unit}) у поставщика «${supplier.name}»`,
+    { entityType: "purchase_order", entityId: order.id }
   );
 
   return order;
@@ -114,7 +133,11 @@ export function nextOrderStatus(status: OrderStatus): OrderStatus | null {
   return NEXT_STATUS[status] ?? null;
 }
 
-export async function advanceOrderStatus(
+// Ручная пометка статуса пользователем — НЕ означает, что событие реально
+// произошло у поставщика (для этого есть external_status/sent_at и т.п.,
+// проставляемые только реальной WhatsApp-интеграцией). UI обязан подписывать
+// эту кнопку как "Отметить вручную", а не как автоматическое действие.
+export async function markOrderStatusManually(
   supabase: SupabaseClient,
   orderId: string,
   businessId: string,
@@ -130,8 +153,9 @@ export async function advanceOrderStatus(
   await logActivity(
     supabase,
     businessId,
-    "order_status_changed",
-    `Заказ у поставщика «${supplierName}» получил статус «${nextStatus}»`
+    "order_status_marked_manually",
+    `Пользователь вручную изменил статус заказа у поставщика «${supplierName}» → «${nextStatus}»`,
+    { entityType: "purchase_order", entityId: orderId, metadata: { status: nextStatus } }
   );
 }
 

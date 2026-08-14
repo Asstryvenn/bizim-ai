@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { advanceOrderStatus, nextOrderStatus } from "@/lib/supplyChainActions";
+import { markOrderStatusManually, nextOrderStatus } from "@/lib/supplyChainActions";
 import { OrderStatusBadge, ORDER_STATUS_LABEL } from "@/components/dashboard/StatusBadge";
+import WhatsAppSendModal from "@/components/dashboard/WhatsAppSendModal";
 import type { Business, OrderStatus, PurchaseOrderWithDetails } from "@/types";
 
 interface OrdersViewProps {
@@ -15,11 +16,14 @@ interface OrdersViewProps {
 
 const STATUS_TIMELINE: OrderStatus[] = ["draft", "sent", "confirmed", "in_transit", "delivered"];
 
+// Все переходы явно подписаны "вручную" — это НЕ реальные события у
+// поставщика (см. external_status для того, что реально подтверждено
+// WhatsApp Cloud API).
 const NEXT_ACTION_LABEL: Partial<Record<OrderStatus, string>> = {
-  draft: "Отправить",
-  sent: "Подтвердить",
-  confirmed: "Отметить «В пути»",
-  in_transit: "Отметить «Доставлен»",
+  draft: "Отметить вручную: отправлен",
+  sent: "Отметить вручную: подтверждён",
+  confirmed: "Отметить вручную: в пути",
+  in_transit: "Отметить вручную: доставлен",
 };
 
 export default function OrdersView({ business, initialOrders }: OrdersViewProps) {
@@ -27,6 +31,7 @@ export default function OrdersView({ business, initialOrders }: OrdersViewProps)
   const [orders, setOrders] = useState(initialOrders);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [whatsappOrder, setWhatsappOrder] = useState<PurchaseOrderWithDetails | null>(null);
 
   const handleAdvance = async (order: PurchaseOrderWithDetails) => {
     const next = nextOrderStatus(order.status);
@@ -34,9 +39,9 @@ export default function OrdersView({ business, initialOrders }: OrdersViewProps)
     setUpdatingId(order.id);
     try {
       const supabase = createClient();
-      await advanceOrderStatus(supabase, order.id, business.id, order.supplier?.name ?? "поставщик", next);
+      await markOrderStatusManually(supabase, order.id, business.id, order.supplier?.name ?? "поставщик", next);
       setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: next } : o)));
-      toast.success(`Статус заказа обновлён: ${ORDER_STATUS_LABEL[next]}`);
+      toast.success(`Статус отмечен вручную: ${ORDER_STATUS_LABEL[next]}`);
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Не удалось обновить статус");
@@ -55,7 +60,7 @@ export default function OrdersView({ business, initialOrders }: OrdersViewProps)
       {orders.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card shadow-card h-56 flex flex-col items-center justify-center text-ink/40 gap-2">
           <div className="text-5xl">🧾</div>
-          <p>Пока нет заказов — сформируйте автозаказ на странице «Остатки»</p>
+          <p>Пока нет заказов — создайте черновик из рекомендации на странице «Остатки»</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -78,8 +83,16 @@ export default function OrdersView({ business, initialOrders }: OrdersViewProps)
                       {order.total_amount !== null ? `₸ ${order.total_amount.toLocaleString("ru-RU")}` : "цена уточняется"}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <OrderStatusBadge status={order.status} />
+                    {order.external_status === "sent_via_whatsapp" && (
+                      <span className="inline-flex items-center rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
+                        ✓ Отправлено через WhatsApp
+                      </span>
+                    )}
+                    <span className="inline-flex items-center rounded-full bg-mist px-2.5 py-1 text-xs font-medium text-ink/50">
+                      {order.payment_status === "paid" ? "Оплачено" : "Оплата не выполнена"}
+                    </span>
                     {order.expected_delivery && (
                       <span className="text-xs text-ink/40">Ожидается: {order.expected_delivery}</span>
                     )}
@@ -107,6 +120,10 @@ export default function OrdersView({ business, initialOrders }: OrdersViewProps)
                         <span key={step}>{ORDER_STATUS_LABEL[step]}</span>
                       ))}
                     </div>
+                    <p className="text-xs text-ink/40">
+                      Статус выше отражает только то, что вы отметили внутри Bizim вручную. Реально подтверждённая
+                      отправка — только через WhatsApp (см. бейдж «Отправлено через WhatsApp» выше).
+                    </p>
 
                     <table className="w-full text-sm">
                       <thead>
@@ -137,8 +154,11 @@ export default function OrdersView({ business, initialOrders }: OrdersViewProps)
                       </tbody>
                     </table>
 
-                    {next && (
-                      <div className="flex justify-end">
+                    <div className="flex flex-wrap justify-end gap-3">
+                      <button type="button" onClick={() => setWhatsappOrder(order)} className="btn-secondary text-sm">
+                        Отправить в WhatsApp
+                      </button>
+                      {next && (
                         <button
                           type="button"
                           onClick={() => handleAdvance(order)}
@@ -147,14 +167,32 @@ export default function OrdersView({ business, initialOrders }: OrdersViewProps)
                         >
                           {updatingId === order.id ? "..." : NEXT_ACTION_LABEL[order.status]}
                         </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
             );
           })}
         </div>
+      )}
+
+      {whatsappOrder && (
+        <WhatsAppSendModal
+          business={business}
+          order={whatsappOrder}
+          onClose={() => setWhatsappOrder(null)}
+          onSent={() => {
+            setOrders((prev) =>
+              prev.map((o) =>
+                o.id === whatsappOrder.id
+                  ? { ...o, external_status: "sent_via_whatsapp", status: o.status === "draft" ? "sent" : o.status }
+                  : o
+              )
+            );
+            router.refresh();
+          }}
+        />
       )}
     </div>
   );
