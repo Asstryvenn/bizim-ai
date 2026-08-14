@@ -5,7 +5,6 @@ import BusinessNotFound from "@/components/BusinessNotFound";
 import type { Business, ImportedFile, InventoryItem, PurchaseOrderWithDetails, Supplier } from "@/types";
 import { computeStats } from "@/lib/analytics";
 import { getPaymentService } from "@/lib/subscription/paymentService";
-import { seedDemoSupplyChain } from "@/lib/demoSeed";
 import { ensureBusinessProfile } from "@/lib/registration";
 
 export default async function DashboardPage() {
@@ -57,18 +56,6 @@ export default async function DashboardPage() {
   const analytics = computeStats(rows);
 
   const subscription = await getPaymentService(supabase).getSubscription(typedBusiness.id);
-
-  // Демо-данные снабжения: заводим один раз для нового бизнеса, чтобы
-  // сразу показать рабочий сценарий (товар → поставщик → заказ → прогноз),
-  // а не пустые экраны. Не трогает бизнес, если товары уже есть.
-  const { count: existingItemsCount } = await supabase
-    .from("inventory_items")
-    .select("id", { count: "exact", head: true })
-    .eq("business_id", typedBusiness.id);
-
-  if (!existingItemsCount) {
-    await seedDemoSupplyChain(supabase, typedBusiness.id);
-  }
 
   const [{ data: inventoryItems }, { data: suppliersData }, { data: ordersData }] = await Promise.all([
     supabase.from("inventory_items").select("*").eq("business_id", typedBusiness.id),

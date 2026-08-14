@@ -214,10 +214,17 @@ export interface Supplier {
   business_id: string;
   name: string;
   category: string;
-  price_index: number;
-  avg_delivery_days: number;
-  delay_rate: number;
+  // Устаревшие ручные метрики — nullable, больше не заполняются вручную при
+  // добавлении поставщика (это были придуманные "на глаз" числа). Реальные
+  // значения считаются на лету из purchase_orders, см. computeSupplierMetrics
+  // в src/lib/supplyChain.ts.
+  price_index: number | null;
+  avg_delivery_days: number | null;
+  delay_rate: number | null;
   orders_count: number;
+  phone: string | null;
+  website: string | null;
+  address: string | null;
   updated_at: string;
   created_at: string;
 }
@@ -233,9 +240,30 @@ export interface InventoryItem {
   current_stock: number;
   min_stock: number;
   desired_stock: number;
+  // Введено пользователем вручную "на глаз" — используется, пока нет
+  // реальной истории продаж. Как только появляются sales, приоритет у
+  // forecast_daily_usage (посчитано, а не введено).
   avg_daily_usage: number;
+  sku: string | null;
+  purchase_price: number | null;
+  selling_price: number | null;
+  forecast_daily_usage: number | null;
+  days_of_stock: number | null;
+  last_purchase_at: string | null;
   supplier_id: string | null;
   updated_at: string;
+  created_at: string;
+}
+
+export interface Sale {
+  id: string;
+  business_id: string;
+  product_id: string;
+  quantity: number;
+  unit_price: number | null;
+  total_amount: number | null;
+  sold_at: string;
+  source: "excel_import" | "manual";
   created_at: string;
 }
 
@@ -250,7 +278,8 @@ export interface PurchaseOrder {
   business_id: string;
   supplier_id: string;
   status: OrderStatus;
-  total_amount: number;
+  // NULL = цена ещё не подтверждена поставщиком, показывать честно, а не "0 ₸".
+  total_amount: number | null;
   expected_delivery: string | null;
   actual_delivery: string | null;
   updated_at: string;
@@ -262,7 +291,7 @@ export interface PurchaseOrderItem {
   order_id: string;
   inventory_item_id: string;
   quantity: number;
-  unit_price: number;
+  unit_price: number | null;
   created_at: string;
 }
 

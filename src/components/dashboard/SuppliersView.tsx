@@ -6,30 +6,31 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { createSupplier } from "@/lib/supplyChainActions";
 import { scoreSuppliers } from "@/lib/supplyChain";
-import type { Business, Supplier } from "@/types";
+import type { Business, PurchaseOrderWithDetails, Supplier } from "@/types";
 
 interface SuppliersViewProps {
   business: Business;
   initialSuppliers: Supplier[];
+  orders: PurchaseOrderWithDetails[];
 }
 
 const emptyForm = {
   name: "",
   category: "Поставщики",
-  price_index: 100,
-  avg_delivery_days: 2,
-  delay_rate: 0,
+  phone: "",
+  website: "",
+  address: "",
 };
 
-export default function SuppliersView({ business, initialSuppliers }: SuppliersViewProps) {
+export default function SuppliersView({ business, initialSuppliers, orders }: SuppliersViewProps) {
   const router = useRouter();
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
-  const scored = useMemo(() => scoreSuppliers(suppliers), [suppliers]);
-  const bestId = scored[0]?.supplier.id;
+  const scored = useMemo(() => scoreSuppliers(suppliers, orders), [suppliers, orders]);
+  const bestId = scored.find((s) => s.totalScore !== null)?.supplier.id;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,10 +45,9 @@ export default function SuppliersView({ business, initialSuppliers }: SuppliersV
         business_id: business.id,
         name: form.name.trim(),
         category: form.category.trim() || "Поставщики",
-        price_index: Number(form.price_index) || 100,
-        avg_delivery_days: Number(form.avg_delivery_days) || 1,
-        delay_rate: Math.min(1, Math.max(0, Number(form.delay_rate) || 0)),
-        orders_count: 0,
+        phone: form.phone.trim() || null,
+        website: form.website.trim() || null,
+        address: form.address.trim() || null,
       });
       setSuppliers((prev) => [created, ...prev]);
       setForm(emptyForm);
@@ -85,17 +85,15 @@ export default function SuppliersView({ business, initialSuppliers }: SuppliersV
               <thead>
                 <tr className="border-b border-border text-left text-ink/50">
                   <th className="px-4 py-3 font-medium">Поставщик</th>
-                  <th className="px-4 py-3 font-medium">Категория</th>
-                  <th className="px-4 py-3 font-medium">Цена (индекс)</th>
-                  <th className="px-4 py-3 font-medium">Доставка</th>
-                  <th className="px-4 py-3 font-medium">Задержки</th>
+                  <th className="px-4 py-3 font-medium">Контакты</th>
                   <th className="px-4 py-3 font-medium">Заказов</th>
-                  <th className="px-4 py-3 font-medium">Надёжность</th>
+                  <th className="px-4 py-3 font-medium">Ср. доставка</th>
+                  <th className="px-4 py-3 font-medium">Задержки</th>
                   <th className="px-4 py-3 font-medium">Оценка</th>
                 </tr>
               </thead>
               <tbody>
-                {scored.map(({ supplier, reliabilityScore, totalScore }) => (
+                {scored.map(({ supplier, metrics, totalScore }) => (
                   <tr key={supplier.id} className="border-b border-border last:border-0 hover:bg-mist/50">
                     <td className="px-4 py-3 font-medium">
                       {supplier.name}
@@ -104,17 +102,36 @@ export default function SuppliersView({ business, initialSuppliers }: SuppliersV
                           Лучший вариант
                         </span>
                       )}
+                      <p className="text-xs text-ink/40 font-normal mt-0.5">{supplier.category}</p>
                     </td>
-                    <td className="px-4 py-3 text-ink/60">{supplier.category}</td>
-                    <td className="px-4 py-3 text-ink/60">{supplier.price_index}</td>
-                    <td className="px-4 py-3 text-ink/60">{supplier.avg_delivery_days} дн.</td>
-                    <td className="px-4 py-3 text-ink/60">{Math.round(supplier.delay_rate * 100)}%</td>
-                    <td className="px-4 py-3 text-ink/60">{supplier.orders_count}</td>
-                    <td className="px-4 py-3 text-ink/60">{reliabilityScore}%</td>
+                    <td className="px-4 py-3 text-ink/60 text-xs space-y-0.5">
+                      {supplier.phone && <p>📞 {supplier.phone}</p>}
+                      {supplier.website && <p>🌐 {supplier.website}</p>}
+                      {supplier.address && <p>📍 {supplier.address}</p>}
+                      {!supplier.phone && !supplier.website && !supplier.address && (
+                        <span className="text-ink/30">Контакты не указаны</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-ink/60">{metrics.ordersCount}</td>
+                    <td className="px-4 py-3 text-ink/60">
+                      {metrics.avgDeliveryDays !== null ? `${metrics.avgDeliveryDays.toFixed(1)} дн.` : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-ink/60">
+                      {metrics.delayRate !== null ? `${Math.round(metrics.delayRate * 100)}%` : "—"}
+                    </td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
-                        {totalScore}/100
-                      </span>
+                      {totalScore !== null ? (
+                        <span className="inline-flex items-center rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
+                          {totalScore}/100
+                        </span>
+                      ) : (
+                        <span
+                          className="inline-flex items-center rounded-full bg-mist px-2.5 py-1 text-xs font-medium text-ink/50"
+                          title="Нужно минимум 2 завершённых заказа, чтобы оценить поставщика"
+                        >
+                          Недостаточно данных
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -122,7 +139,8 @@ export default function SuppliersView({ business, initialSuppliers }: SuppliersV
             </table>
           </div>
           <p className="px-4 py-3 text-xs text-ink/40 border-t border-border">
-            Оценка = 35% цена + 25% скорость доставки + 40% надёжность (доля поставок без задержек).
+            Оценка = 40% скорость доставки + 60% надёжность — считается из реальной истории ваших заказов
+            (минимум 2 завершённых заказа у поставщика).
           </p>
         </div>
       )}
@@ -148,6 +166,11 @@ export default function SuppliersView({ business, initialSuppliers }: SuppliersV
               </button>
             </div>
 
+            <p className="text-xs text-ink/50">
+              Укажите только то, что реально знаете — скорость доставки и надёжность система посчитает сама
+              после нескольких заказов.
+            </p>
+
             <div>
               <label className="label">Название</label>
               <input
@@ -167,37 +190,33 @@ export default function SuppliersView({ business, initialSuppliers }: SuppliersV
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="label">Индекс цены</label>
-                <input
-                  type="number"
-                  className="input"
-                  value={form.price_index}
-                  onChange={(e) => setForm({ ...form, price_index: Number(e.target.value) })}
-                />
-              </div>
-              <div>
-                <label className="label">Доставка, дн.</label>
-                <input
-                  type="number"
-                  className="input"
-                  value={form.avg_delivery_days}
-                  onChange={(e) => setForm({ ...form, avg_delivery_days: Number(e.target.value) })}
-                />
-              </div>
-              <div>
-                <label className="label">Задержки, 0–1</label>
-                <input
-                  type="number"
-                  step="0.05"
-                  min={0}
-                  max={1}
-                  className="input"
-                  value={form.delay_rate}
-                  onChange={(e) => setForm({ ...form, delay_rate: Number(e.target.value) })}
-                />
-              </div>
+            <div>
+              <label className="label">Телефон</label>
+              <input
+                className="input"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="+7 ..."
+              />
+            </div>
+
+            <div>
+              <label className="label">Сайт</label>
+              <input
+                className="input"
+                value={form.website}
+                onChange={(e) => setForm({ ...form, website: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
+
+            <div>
+              <label className="label">Адрес</label>
+              <input
+                className="input"
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+              />
             </div>
 
             <div className="flex justify-end gap-3 pt-2">

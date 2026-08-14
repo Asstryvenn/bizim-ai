@@ -1,17 +1,32 @@
-import type {
-  InventoryItem,
-  InventoryStatus,
-  Supplier,
-  PurchaseOrderWithDetails,
-} from "@/types";
+import type { InventoryItem, InventoryStatus, Sale, Supplier, PurchaseOrderWithDetails } from "@/types";
+import { computeProductMetrics } from "@/lib/salesAnalytics";
 
 // ---------------------------------------------------------------------------
 // Учёт остатков: статус и прогноз "на сколько дней хватит"
+// Приоритет всегда у РЕАЛЬНО ПОСЧИТАННОГО days_of_stock/forecast_daily_usage
+// (из sales, см. lib/salesAnalytics.ts и /api/import/products) — avg_daily_usage
+// используется только как ручной fallback, пока нет истории продаж.
 // ---------------------------------------------------------------------------
 
-export function daysOfStockLeft(item: Pick<InventoryItem, "current_stock" | "avg_daily_usage">): number | null {
-  if (item.avg_daily_usage <= 0) return null;
-  return item.current_stock / item.avg_daily_usage;
+export function effectiveDailyUsage(
+  item: Pick<InventoryItem, "avg_daily_usage" | "forecast_daily_usage">
+): { value: number | null; isComputed: boolean } {
+  if (item.forecast_daily_usage !== null && item.forecast_daily_usage !== undefined) {
+    return { value: item.forecast_daily_usage, isComputed: true };
+  }
+  if (item.avg_daily_usage > 0) {
+    return { value: item.avg_daily_usage, isComputed: false };
+  }
+  return { value: null, isComputed: false };
+}
+
+export function daysOfStockLeft(
+  item: Pick<InventoryItem, "current_stock" | "avg_daily_usage" | "forecast_daily_usage" | "days_of_stock">
+): number | null {
+  if (item.days_of_stock !== null && item.days_of_stock !== undefined) return item.days_of_stock;
+  const { value } = effectiveDailyUsage(item);
+  if (!value || value <= 0) return null;
+  return item.current_stock / value;
 }
 
 export function getInventoryStatus(
@@ -50,138 +65,89 @@ export function needsReorder(
 }
 
 // ---------------------------------------------------------------------------
-// Поставщики: прозрачная scoring-модель сравнения
+// Поставщики: метрики скорости/надёжности считаются из РЕАЛЬНОЙ истории
+// purchase_orders этого поставщика, а не вводятся вручную при добавлении
+// (раньше price_index/avg_delivery_days/delay_rate заполнялись "на глаз"
+// сразу для нового поставщика — это и есть придуманные данные).
 // ---------------------------------------------------------------------------
 
-export interface SupplierScore {
-  supplier: Supplier;
-  priceScore: number;
-  speedScore: number;
-  reliabilityScore: number;
-  totalScore: number;
+const MIN_ORDERS_FOR_SUPPLIER_METRICS = 2;
+
+export interface SupplierMetrics {
+  hasEnoughData: boolean;
+  ordersCount: number;
+  deliveredCount: number;
+  avgDeliveryDays: number | null;
+  delayRate: number | null;
 }
 
-// Веса модели: надёжность важнее всего для непрерывности снабжения,
-// затем цена, затем скорость доставки.
-const WEIGHT_PRICE = 0.35;
-const WEIGHT_SPEED = 0.25;
-const WEIGHT_RELIABILITY = 0.4;
+export function computeSupplierMetrics(supplierId: string, orders: PurchaseOrderWithDetails[]): SupplierMetrics {
+  const supplierOrders = orders.filter((o) => o.supplier_id === supplierId && o.status !== "draft");
+  const delivered = supplierOrders.filter((o) => o.status === "delivered" && o.actual_delivery);
+  const delayed = supplierOrders.filter((o) => o.status === "delayed");
 
-export function scoreSuppliers(suppliers: Supplier[]): SupplierScore[] {
-  if (suppliers.length === 0) return [];
+  const hasEnoughData = supplierOrders.length >= MIN_ORDERS_FOR_SUPPLIER_METRICS;
 
-  const prices = suppliers.map((s) => s.price_index);
-  const speeds = suppliers.map((s) => s.avg_delivery_days);
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
-  const minSpeed = Math.min(...speeds);
-  const maxSpeed = Math.max(...speeds);
+  const avgDeliveryDays =
+    delivered.length > 0
+      ? delivered.reduce((sum, o) => {
+          const days = (new Date(o.actual_delivery!).getTime() - new Date(o.created_at).getTime()) / 86400000;
+          return sum + Math.max(days, 0);
+        }, 0) / delivered.length
+      : null;
 
-  const normalize = (value: number, min: number, max: number) =>
-    max === min ? 100 : ((max - value) / (max - min)) * 100;
+  const delayRate = hasEnoughData ? delayed.length / supplierOrders.length : null;
 
-  return suppliers
-    .map((supplier) => {
-      const priceScore = normalize(supplier.price_index, minPrice, maxPrice);
-      const speedScore = normalize(supplier.avg_delivery_days, minSpeed, maxSpeed);
-      const reliabilityScore = (1 - supplier.delay_rate) * 100;
-      const totalScore =
-        priceScore * WEIGHT_PRICE + speedScore * WEIGHT_SPEED + reliabilityScore * WEIGHT_RELIABILITY;
-      return {
-        supplier,
-        priceScore: Math.round(priceScore),
-        speedScore: Math.round(speedScore),
-        reliabilityScore: Math.round(reliabilityScore),
-        totalScore: Math.round(totalScore),
-      };
-    })
-    .sort((a, b) => b.totalScore - a.totalScore);
-}
-
-// ---------------------------------------------------------------------------
-// Прогноз спроса: детерминированная история + прогноз на основе среднего
-// расхода товара (без реальных продаж — для MVP этого достаточно, но
-// результат стабилен между рендерами и выглядит как настоящая аналитика).
-// ---------------------------------------------------------------------------
-
-function seededRandom(seed: number) {
-  let state = seed;
-  return () => {
-    state = (state * 1664525 + 1013904223) % 4294967296;
-    return state / 4294967296;
+  return {
+    hasEnoughData,
+    ordersCount: supplierOrders.length,
+    deliveredCount: delivered.length,
+    avgDeliveryDays,
+    delayRate,
   };
 }
 
-function hashString(value: string): number {
-  let hash = 0;
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
-  }
-  return hash || 1;
+export interface SupplierScore {
+  supplier: Supplier;
+  metrics: SupplierMetrics;
+  speedScore: number | null;
+  reliabilityScore: number | null;
+  totalScore: number | null;
 }
 
-export interface ForecastPoint {
-  date: string;
-  qty: number;
-  isForecast: boolean;
-}
+export function scoreSuppliers(suppliers: Supplier[], orders: PurchaseOrderWithDetails[]): SupplierScore[] {
+  if (suppliers.length === 0) return [];
 
-export interface DemandForecast {
-  history: ForecastPoint[];
-  forecast: ForecastPoint[];
-  expectedUsage7d: number;
-  recommendedOrder: number;
-  seasonalCoefficient: number;
-}
+  const withMetrics = suppliers.map((supplier) => ({
+    supplier,
+    metrics: computeSupplierMetrics(supplier.id, orders),
+  }));
 
-export function buildDemandForecast(item: InventoryItem): DemandForecast {
-  const rand = seededRandom(hashString(item.id));
-  const base = Math.max(item.avg_daily_usage, 0.5);
-  const today = new Date();
+  const ratedSpeeds = withMetrics
+    .map((s) => s.metrics.avgDeliveryDays)
+    .filter((v): v is number => v !== null);
+  const minSpeed = ratedSpeeds.length > 0 ? Math.min(...ratedSpeeds) : 0;
+  const maxSpeed = ratedSpeeds.length > 0 ? Math.max(...ratedSpeeds) : 0;
+  const normalize = (value: number, min: number, max: number) =>
+    max === min ? 100 : ((max - value) / (max - min)) * 100;
 
-  const history: ForecastPoint[] = [];
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const weekday = date.getDay();
-    // Выходные (Пт/Сб) — чуть выше спрос, типично для кафе/розницы.
-    const weekendBoost = weekday === 5 || weekday === 6 ? 1.15 : 1;
-    const noise = 0.85 + rand() * 0.3;
-    history.push({
-      date: date.toISOString().slice(0, 10),
-      qty: Math.round(base * weekendBoost * noise * 10) / 10,
-      isForecast: false,
-    });
-  }
-
-  // Сезонный коэффициент — среднее отношение последних 7 дней к предыдущим 23.
-  const recent7 = history.slice(-7).reduce((sum, p) => sum + p.qty, 0) / 7;
-  const prior = history.slice(0, 23).reduce((sum, p) => sum + p.qty, 0) / 23;
-  const seasonalCoefficient = prior > 0 ? recent7 / prior : 1;
-
-  const forecast: ForecastPoint[] = [];
-  for (let i = 1; i <= 7; i++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() + i);
-    const weekday = date.getDay();
-    const weekendBoost = weekday === 5 || weekday === 6 ? 1.15 : 1;
-    const noise = 0.95 + rand() * 0.1;
-    forecast.push({
-      date: date.toISOString().slice(0, 10),
-      qty: Math.round(base * seasonalCoefficient * weekendBoost * noise * 10) / 10,
-      isForecast: true,
-    });
-  }
-
-  const expectedUsage7d = Math.round(forecast.reduce((sum, p) => sum + p.qty, 0));
-  const recommendedOrder = Math.max(0, Math.ceil(expectedUsage7d - item.current_stock + item.min_stock));
-
-  return { history, forecast, expectedUsage7d, recommendedOrder, seasonalCoefficient };
+  return withMetrics
+    .map(({ supplier, metrics }) => {
+      if (!metrics.hasEnoughData || metrics.avgDeliveryDays === null || metrics.delayRate === null) {
+        return { supplier, metrics, speedScore: null, reliabilityScore: null, totalScore: null };
+      }
+      const speedScore = Math.round(normalize(metrics.avgDeliveryDays, minSpeed, maxSpeed));
+      const reliabilityScore = Math.round((1 - metrics.delayRate) * 100);
+      const totalScore = Math.round(speedScore * 0.4 + reliabilityScore * 0.6);
+      return { supplier, metrics, speedScore, reliabilityScore, totalScore };
+    })
+    .sort((a, b) => (b.totalScore ?? -1) - (a.totalScore ?? -1));
 }
 
 // ---------------------------------------------------------------------------
-// AI-рекомендации: правило-based, но объяснимые и завязанные на реальные
-// данные бизнеса (не выдумываем факты, которых нет в inventory/suppliers).
+// AI-рекомендации: правило-based, завязаны только на реальные данные
+// (sales, inventory_items, purchase_orders). Если данных недостаточно для
+// вывода — рекомендация просто не создаётся, а не заменяется догадкой.
 // ---------------------------------------------------------------------------
 
 export interface Recommendation {
@@ -196,7 +162,6 @@ export function generateRecommendations(
   orders: PurchaseOrderWithDetails[]
 ): Recommendation[] {
   const recs: Recommendation[] = [];
-  const supplierById = new Map(suppliers.map((s) => [s.id, s]));
 
   for (const item of items) {
     const status = getInventoryStatus(item);
@@ -223,17 +188,21 @@ export function generateRecommendations(
   }
 
   for (const supplier of suppliers) {
-    if (supplier.orders_count >= 3 && supplier.delay_rate >= 0.35) {
+    const metrics = computeSupplierMetrics(supplier.id, orders);
+    if (metrics.hasEnoughData && metrics.delayRate !== null && metrics.delayRate >= 0.35) {
       const better = suppliers
-        .filter((s) => s.id !== supplier.id && s.delay_rate < supplier.delay_rate)
-        .sort((a, b) => a.delay_rate - b.delay_rate)[0];
-      const delayedCount = Math.round(supplier.delay_rate * supplier.orders_count);
+        .filter((s) => s.id !== supplier.id)
+        .map((s) => ({ s, m: computeSupplierMetrics(s.id, orders) }))
+        .filter((x) => x.m.hasEnoughData && x.m.delayRate !== null && x.m.delayRate < metrics.delayRate!)
+        .sort((a, b) => a.m.delayRate! - b.m.delayRate!)[0]?.s;
+
+      const delayedCount = Math.round(metrics.delayRate * metrics.ordersCount);
       recs.push({
         id: `supplier-${supplier.id}`,
         severity: "warning",
         message: better
-          ? `Поставщик «${supplier.name}» задержал ${delayedCount} из ${supplier.orders_count} последних поставок. Рассмотрите поставщика «${better.name}» — у него меньше задержек.`
-          : `Поставщик «${supplier.name}» задержал ${delayedCount} из ${supplier.orders_count} последних поставок.`,
+          ? `Поставщик «${supplier.name}» задержал ${delayedCount} из ${metrics.ordersCount} последних поставок. Рассмотрите поставщика «${better.name}» — у него меньше задержек.`
+          : `Поставщик «${supplier.name}» задержал ${delayedCount} из ${metrics.ordersCount} последних поставок.`,
       });
     }
   }
@@ -247,7 +216,6 @@ export function generateRecommendations(
     });
   }
 
-  // Порядок: сначала критические, потом warning, потом info.
   const severityOrder: Record<Recommendation["severity"], number> = { critical: 0, warning: 1, info: 2 };
   return recs.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
 }
@@ -256,21 +224,20 @@ export function computeSupplyMetrics(items: InventoryItem[], suppliers: Supplier
   const lowStockCount = items.filter((i) => getInventoryStatus(i) === "low").length;
   const criticalCount = items.filter((i) => getInventoryStatus(i) === "critical").length;
   const excessCount = items.filter((i) => getInventoryStatus(i) === "excess").length;
-  const activeOrders = orders.filter((o) => !["delivered"].includes(o.status)).length;
+  const activeOrders = orders.filter((o) => o.status !== "delivered").length;
   const inTransit = orders.filter((o) => o.status === "in_transit").length;
 
+  const supplierMetrics = suppliers
+    .map((s) => computeSupplierMetrics(s.id, orders))
+    .filter((m) => m.hasEnoughData);
   const avgDeliveryDays =
-    suppliers.length > 0
-      ? suppliers.reduce((sum, s) => sum + s.avg_delivery_days, 0) / suppliers.length
-      : 0;
+    supplierMetrics.length > 0
+      ? supplierMetrics.reduce((sum, m) => sum + (m.avgDeliveryDays ?? 0), 0) / supplierMetrics.length
+      : null;
   const avgDelayRate =
-    suppliers.length > 0 ? suppliers.reduce((sum, s) => sum + s.delay_rate, 0) / suppliers.length : 0;
-
-  // Оценка экономии от автозаказа: разница между "заказ по требованию день-в-день"
-  // (плата за срочность +15%) и оптимальным плановым заказом по среднему чеку заказа.
-  const estimatedMonthlySavings = orders
-    .filter((o) => o.status !== "draft")
-    .reduce((sum, o) => sum + o.total_amount * 0.15, 0);
+    supplierMetrics.length > 0
+      ? supplierMetrics.reduce((sum, m) => sum + (m.delayRate ?? 0), 0) / supplierMetrics.length
+      : null;
 
   return {
     lowStockCount,
@@ -278,8 +245,92 @@ export function computeSupplyMetrics(items: InventoryItem[], suppliers: Supplier
     excessCount,
     activeOrders,
     inTransit,
-    avgDeliveryDays: Math.round(avgDeliveryDays * 10) / 10,
-    avgDelayRate: Math.round(avgDelayRate * 100),
-    estimatedMonthlySavings: Math.round(estimatedMonthlySavings),
+    avgDeliveryDays: avgDeliveryDays !== null ? Math.round(avgDeliveryDays * 10) / 10 : null,
+    avgDelayRate: avgDelayRate !== null ? Math.round(avgDelayRate * 100) : null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Прогноз спроса: строится ТОЛЬКО из реальной истории sales. Если истории
+// недостаточно (< 14 дней с продажами), возвращается hasEnoughData: false —
+// UI обязан честно показать "недостаточно данных", а не рисовать график.
+// ---------------------------------------------------------------------------
+
+export interface DemandForecastPoint {
+  date: string;
+  qty: number;
+  isForecast: boolean;
+}
+
+export interface DemandForecastResult {
+  hasEnoughData: boolean;
+  history: DemandForecastPoint[];
+  forecast: DemandForecastPoint[];
+  expectedUsage7d: number | null;
+  recommendedOrder: number | null;
+  distinctSaleDays: number;
+}
+
+export function buildDemandForecast(
+  item: Pick<InventoryItem, "id" | "current_stock" | "min_stock" | "desired_stock">,
+  sales: Pick<Sale, "sold_at" | "quantity">[]
+): DemandForecastResult {
+  const metrics = computeProductMetrics(sales, {
+    currentStock: item.current_stock,
+    minStock: item.min_stock,
+    desiredStock: item.desired_stock,
+  });
+
+  if (!metrics.hasSalesHistory || metrics.averageDailyUsage === null) {
+    return {
+      hasEnoughData: false,
+      history: [],
+      forecast: [],
+      expectedUsage7d: null,
+      recommendedOrder: null,
+      distinctSaleDays: metrics.distinctSaleDays,
+    };
+  }
+
+  const byDay = new Map<string, number>();
+  for (const s of sales) {
+    const key = s.sold_at.slice(0, 10);
+    byDay.set(key, (byDay.get(key) ?? 0) + s.quantity);
+  }
+  const sortedDays = Array.from(byDay.keys()).sort();
+  const last30Days = sortedDays.slice(-30);
+  const history: DemandForecastPoint[] = last30Days.map((date) => ({
+    date,
+    qty: byDay.get(date) ?? 0,
+    isForecast: false,
+  }));
+
+  // Прогноз на 7 дней вперёд — простая экспоненциально взвешенная средняя
+  // (больше веса недавним дням), без случайного шума.
+  const base = metrics.averageDailyUsage;
+  const trendMultiplier =
+    metrics.trend === "up" ? 1 + Math.min(metrics.trendPercent ?? 0, 50) / 100 : metrics.trend === "down" ? 1 + Math.max(metrics.trendPercent ?? 0, -50) / 100 : 1;
+
+  const latestDate = new Date(`${sortedDays[sortedDays.length - 1]}T00:00:00Z`);
+  const forecast: DemandForecastPoint[] = [];
+  for (let i = 1; i <= 7; i++) {
+    const date = new Date(latestDate);
+    date.setUTCDate(date.getUTCDate() + i);
+    forecast.push({
+      date: date.toISOString().slice(0, 10),
+      qty: Math.round(base * trendMultiplier * 10) / 10,
+      isForecast: true,
+    });
+  }
+
+  const expectedUsage7d = Math.round(forecast.reduce((sum, p) => sum + p.qty, 0));
+
+  return {
+    hasEnoughData: true,
+    history,
+    forecast,
+    expectedUsage7d,
+    recommendedOrder: metrics.recommendedOrderQuantity,
+    distinctSaleDays: metrics.distinctSaleDays,
   };
 }

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/DashboardNav";
 import SuppliersView from "@/components/dashboard/SuppliersView";
+import { fetchOrdersWithSuppliers } from "@/lib/ordersData";
 import type { Business, Supplier } from "@/types";
 
 export default async function SuppliersPage() {
@@ -28,6 +29,9 @@ export default async function SuppliersPage() {
     .eq("business_id", typedBusiness.id)
     .order("created_at", { ascending: false });
 
+  const typedSuppliers = (suppliers as Supplier[]) ?? [];
+  const orders = await fetchOrdersWithSuppliers(supabase, typedBusiness.id, typedSuppliers);
+
   return (
     <main className="min-h-screen bg-mist">
       <DashboardNav
@@ -37,7 +41,7 @@ export default async function SuppliersPage() {
         lastName={typedBusiness.last_name}
         email={user.email ?? ""}
       />
-      <SuppliersView business={typedBusiness} initialSuppliers={(suppliers as Supplier[]) ?? []} />
+      <SuppliersView business={typedBusiness} initialSuppliers={typedSuppliers} orders={orders} />
     </main>
   );
 }

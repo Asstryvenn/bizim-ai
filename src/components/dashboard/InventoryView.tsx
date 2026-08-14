@@ -7,17 +7,21 @@ import { createClient } from "@/lib/supabase/client";
 import { createInventoryItem, createReorderFromItem } from "@/lib/supplyChainActions";
 import {
   daysOfStockLeft,
+  effectiveDailyUsage,
   getInventoryStatus,
   recommendedOrderQty,
   scoreSuppliers,
+  computeSupplierMetrics,
 } from "@/lib/supplyChain";
 import { InventoryStatusBadge } from "@/components/dashboard/StatusBadge";
-import type { Business, InventoryItem, InventoryStatus, Supplier } from "@/types";
+import ProductImportModal from "@/components/dashboard/ProductImportModal";
+import type { Business, InventoryItem, InventoryStatus, PurchaseOrderWithDetails, Supplier } from "@/types";
 
 interface InventoryViewProps {
   business: Business;
   initialItems: InventoryItem[];
   suppliers: Supplier[];
+  orders: PurchaseOrderWithDetails[];
 }
 
 const STATUS_FILTERS: { value: InventoryStatus | "all"; label: string }[] = [
@@ -36,21 +40,24 @@ const emptyForm = {
   min_stock: 0,
   desired_stock: 0,
   avg_daily_usage: 0,
+  purchase_price: "",
   supplier_id: "",
 };
 
-export default function InventoryView({ business, initialItems, suppliers }: InventoryViewProps) {
+export default function InventoryView({ business, initialItems, suppliers, orders }: InventoryViewProps) {
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<InventoryStatus | "all">("all");
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [reorderingId, setReorderingId] = useState<string | null>(null);
 
   const supplierById = useMemo(() => new Map(suppliers.map((s) => [s.id, s])), [suppliers]);
-  const bestSupplier = useMemo(() => scoreSuppliers(suppliers)[0]?.supplier ?? null, [suppliers]);
+  const scoredSuppliers = useMemo(() => scoreSuppliers(suppliers, orders), [suppliers, orders]);
+  const bestSupplier = scoredSuppliers[0]?.supplier ?? suppliers[0] ?? null;
 
   const filtered = items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
@@ -76,6 +83,8 @@ export default function InventoryView({ business, initialItems, suppliers }: Inv
         min_stock: Number(form.min_stock) || 0,
         desired_stock: Number(form.desired_stock) || 0,
         avg_daily_usage: Number(form.avg_daily_usage) || 0,
+        purchase_price: form.purchase_price ? Number(form.purchase_price) : null,
+        selling_price: null,
         supplier_id: form.supplier_id || null,
       });
       setItems((prev) => [created, ...prev]);
@@ -100,7 +109,15 @@ export default function InventoryView({ business, initialItems, suppliers }: Inv
     try {
       const supabase = createClient();
       const qty = recommendedOrderQty(item);
-      await createReorderFromItem(supabase, business.id, item, supplier, qty || item.min_stock || 10);
+      const metrics = computeSupplierMetrics(supplier.id, orders);
+      await createReorderFromItem(
+        supabase,
+        business.id,
+        item,
+        supplier,
+        qty || item.min_stock || 10,
+        metrics.avgDeliveryDays
+      );
       toast.success(`Заказ на «${item.name}» сформирован и отправлен поставщику «${supplier.name}»`);
       router.push("/dashboard/orders");
       router.refresh();
@@ -120,9 +137,14 @@ export default function InventoryView({ business, initialItems, suppliers }: Inv
             {items.length} товаров · {items.filter((i) => getInventoryStatus(i) !== "ok").length} требуют внимания
           </p>
         </div>
-        <button type="button" onClick={() => setShowForm(true)} className="btn-primary shrink-0">
-          + Добавить товар
-        </button>
+        <div className="flex gap-3 shrink-0">
+          <button type="button" onClick={() => setShowImport(true)} className="btn-secondary">
+            Импортировать продажи
+          </button>
+          <button type="button" onClick={() => setShowForm(true)} className="btn-primary">
+            + Добавить товар
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -149,7 +171,11 @@ export default function InventoryView({ business, initialItems, suppliers }: Inv
         {filtered.length === 0 ? (
           <div className="h-56 flex flex-col items-center justify-center text-ink/40 gap-2">
             <div className="text-5xl">📦</div>
-            <p>{items.length === 0 ? "Пока нет товаров — добавьте первый" : "Ничего не найдено"}</p>
+            <p>
+              {items.length === 0
+                ? "Пока нет данных об остатках — добавьте товар или импортируйте продажи"
+                : "Ничего не найдено"}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -171,6 +197,7 @@ export default function InventoryView({ business, initialItems, suppliers }: Inv
                 {filtered.map((item) => {
                   const status = getInventoryStatus(item);
                   const days = daysOfStockLeft(item);
+                  const usage = effectiveDailyUsage(item);
                   const supplier = item.supplier_id ? supplierById.get(item.supplier_id) : null;
                   return (
                     <tr key={item.id} className="border-b border-border last:border-0 hover:bg-mist/50">
@@ -183,7 +210,14 @@ export default function InventoryView({ business, initialItems, suppliers }: Inv
                         {item.min_stock} {item.unit}
                       </td>
                       <td className="px-4 py-3 text-ink/60">
-                        {item.avg_daily_usage} {item.unit}
+                        {usage.value === null ? (
+                          <span className="text-ink/35">нет данных</span>
+                        ) : (
+                          <span title={usage.isComputed ? "Рассчитано из истории продаж" : "Введено вручную"}>
+                            {usage.value.toFixed(1)} {item.unit}
+                            {usage.isComputed ? " 📊" : " ✏️"}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-ink/60">
                         {days === null ? "—" : `${days < 1 ? "< 1" : days.toFixed(1)} дн.`}
@@ -288,7 +322,7 @@ export default function InventoryView({ business, initialItems, suppliers }: Inv
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="label">Средний расход/день</label>
+                <label className="label">Средний расход/день (пока нет продаж)</label>
                 <input
                   type="number"
                   className="input"
@@ -305,6 +339,18 @@ export default function InventoryView({ business, initialItems, suppliers }: Inv
                   onChange={(e) => setForm({ ...form, desired_stock: Number(e.target.value) })}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="label">Закупочная цена за единицу (если известна)</label>
+              <input
+                type="number"
+                step="0.01"
+                className="input"
+                value={form.purchase_price}
+                onChange={(e) => setForm({ ...form, purchase_price: e.target.value })}
+                placeholder="Оставьте пустым, если неизвестна"
+              />
             </div>
 
             <div>
@@ -334,6 +380,8 @@ export default function InventoryView({ business, initialItems, suppliers }: Inv
           </form>
         </div>
       )}
+
+      {showImport && <ProductImportModal onClose={() => setShowImport(false)} />}
     </div>
   );
 }

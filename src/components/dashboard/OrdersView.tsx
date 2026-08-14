@@ -75,7 +75,7 @@ export default function OrdersView({ business, initialOrders }: OrdersViewProps)
                     </p>
                     <p className="text-sm text-ink/50 mt-0.5">
                       {new Date(order.created_at).toLocaleDateString("ru-RU")} · {order.items.length} позиций ·{" "}
-                      ₸ {order.total_amount.toLocaleString("ru-RU")}
+                      {order.total_amount !== null ? `₸ ${order.total_amount.toLocaleString("ru-RU")}` : "цена уточняется"}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -124,8 +124,14 @@ export default function OrdersView({ business, initialOrders }: OrdersViewProps)
                             <td className="py-2">
                               {oi.quantity} {oi.item?.unit ?? ""}
                             </td>
-                            <td className="py-2">₸ {oi.unit_price.toLocaleString("ru-RU")}</td>
-                            <td className="py-2">₸ {(oi.quantity * oi.unit_price).toLocaleString("ru-RU")}</td>
+                            <td className="py-2">
+                              {oi.unit_price !== null ? `₸ ${oi.unit_price.toLocaleString("ru-RU")}` : "не указана"}
+                            </td>
+                            <td className="py-2">
+                              {oi.unit_price !== null
+                                ? `₸ ${(oi.quantity * oi.unit_price).toLocaleString("ru-RU")}`
+                                : "уточняется у поставщика"}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

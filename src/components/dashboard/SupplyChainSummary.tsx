@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { computeSupplyMetrics, generateRecommendations, getInventoryStatus, daysOfStockLeft } from "@/lib/supplyChain";
+import {
+  computeSupplyMetrics,
+  generateRecommendations,
+  getInventoryStatus,
+  daysOfStockLeft,
+  effectiveDailyUsage,
+} from "@/lib/supplyChain";
 import type { InventoryItem, PurchaseOrderWithDetails, Supplier } from "@/types";
 
 interface SupplyChainSummaryProps {
@@ -63,8 +69,10 @@ export default function SupplyChainSummary({ items, suppliers, orders }: SupplyC
           <p className="mt-1 text-2xl font-bold">{metrics.inTransit}</p>
         </div>
         <div className="rounded-xl bg-mist p-4">
-          <p className="text-xs text-ink/50">Экономия за месяц</p>
-          <p className="mt-1 text-2xl font-bold text-success">₸{metrics.estimatedMonthlySavings.toLocaleString("ru-RU")}</p>
+          <p className="text-xs text-ink/50">Ср. срок доставки</p>
+          <p className="mt-1 text-2xl font-bold">
+            {metrics.avgDeliveryDays !== null ? `${metrics.avgDeliveryDays} дн.` : "нет данных"}
+          </p>
         </div>
         <div className="rounded-xl bg-mist p-4">
           <p className="text-xs text-ink/50">Риск дефицита</p>
@@ -78,6 +86,7 @@ export default function SupplyChainSummary({ items, suppliers, orders }: SupplyC
           <div className="space-y-2">
             {attention.map((item) => {
               const days = daysOfStockLeft(item);
+              const usage = effectiveDailyUsage(item);
               return (
                 <div
                   key={item.id}
@@ -86,7 +95,8 @@ export default function SupplyChainSummary({ items, suppliers, orders }: SupplyC
                   <div>
                     <p className="font-medium text-sm">{item.name}</p>
                     <p className="text-xs text-ink/50">
-                      Остаток: {item.current_stock} {item.unit} · Средний расход: {item.avg_daily_usage} {item.unit}/день
+                      Остаток: {item.current_stock} {item.unit}
+                      {usage.value !== null && ` · Средний расход: ${usage.value.toFixed(1)} ${item.unit}/день`}
                       {days !== null && ` · Хватит примерно на ${days < 1 ? "меньше суток" : `${days.toFixed(1)} дня`}`}
                     </p>
                   </div>

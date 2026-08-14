@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/DashboardNav";
 import InventoryView from "@/components/dashboard/InventoryView";
+import { fetchOrdersWithSuppliers } from "@/lib/ordersData";
 import type { Business, InventoryItem, Supplier } from "@/types";
 
 export default async function InventoryPage() {
@@ -35,6 +36,9 @@ export default async function InventoryPage() {
       .order("name", { ascending: true }),
   ]);
 
+  const typedSuppliers = (suppliers as Supplier[]) ?? [];
+  const orders = await fetchOrdersWithSuppliers(supabase, typedBusiness.id, typedSuppliers);
+
   return (
     <main className="min-h-screen bg-mist">
       <DashboardNav
@@ -47,7 +51,8 @@ export default async function InventoryPage() {
       <InventoryView
         business={typedBusiness}
         initialItems={(items as InventoryItem[]) ?? []}
-        suppliers={(suppliers as Supplier[]) ?? []}
+        suppliers={typedSuppliers}
+        orders={orders}
       />
     </main>
   );

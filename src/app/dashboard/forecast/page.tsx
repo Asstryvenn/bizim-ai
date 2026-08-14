@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/DashboardNav";
 import ForecastView from "@/components/dashboard/ForecastView";
-import type { Business, InventoryItem } from "@/types";
+import type { Business, InventoryItem, Sale } from "@/types";
 
 export default async function ForecastPage() {
   const supabase = await createClient();
@@ -26,7 +26,13 @@ export default async function ForecastPage() {
     .from("inventory_items")
     .select("*")
     .eq("business_id", typedBusiness.id)
-    .order("avg_daily_usage", { ascending: false });
+    .order("name", { ascending: true });
+
+  const { data: sales } = await supabase
+    .from("sales")
+    .select("*")
+    .eq("business_id", typedBusiness.id)
+    .order("sold_at", { ascending: true });
 
   return (
     <main className="min-h-screen bg-mist">
@@ -37,7 +43,7 @@ export default async function ForecastPage() {
         lastName={typedBusiness.last_name}
         email={user.email ?? ""}
       />
-      <ForecastView items={(items as InventoryItem[]) ?? []} />
+      <ForecastView items={(items as InventoryItem[]) ?? []} sales={(sales as Sale[]) ?? []} />
     </main>
   );
 }

@@ -22,6 +22,8 @@ export interface NewInventoryItemInput {
   min_stock: number;
   desired_stock: number;
   avg_daily_usage: number;
+  purchase_price: number | null;
+  selling_price: number | null;
   supplier_id: string | null;
 }
 
@@ -36,10 +38,9 @@ export interface NewSupplierInput {
   business_id: string;
   name: string;
   category: string;
-  price_index: number;
-  avg_delivery_days: number;
-  delay_rate: number;
-  orders_count: number;
+  phone: string | null;
+  website: string | null;
+  address: string | null;
 }
 
 export async function createSupplier(supabase: SupabaseClient, input: NewSupplierInput) {
@@ -49,18 +50,25 @@ export async function createSupplier(supabase: SupabaseClient, input: NewSupplie
   return data as Supplier;
 }
 
-// Автозаказ: создаёт черновик заказа сразу с одной позицией (сам товар,
-// требующий пополнения) и статусом "sent" — для MVP этого достаточно, чтобы
-// пользователь увидел реальное изменение состояния интерфейса.
+// Автозаказ: создаёт заказ сразу с одной позицией (сам товар, требующий
+// пополнения) и статусом "sent". Цена и срок доставки — только если они
+// реально известны (purchase_price товара / посчитанный avgDeliveryDays
+// поставщика из его истории заказов), иначе честно остаются NULL —
+// "цена/срок будут подтверждены поставщиком", а не выдуманное число.
 export async function createReorderFromItem(
   supabase: SupabaseClient,
   businessId: string,
   item: InventoryItem,
   supplier: Supplier,
-  quantity: number
+  quantity: number,
+  knownAvgDeliveryDays: number | null
 ) {
-  const unitPrice = supplier.price_index / 10;
-  const totalAmount = Math.round(unitPrice * quantity);
+  const unitPrice = item.purchase_price;
+  const totalAmount = unitPrice !== null ? Math.round(unitPrice * quantity) : null;
+  const expectedDelivery =
+    knownAvgDeliveryDays !== null
+      ? new Date(Date.now() + knownAvgDeliveryDays * 86400000).toISOString().slice(0, 10)
+      : null;
 
   const { data: order, error: orderError } = await supabase
     .from("purchase_orders")
@@ -69,9 +77,7 @@ export async function createReorderFromItem(
       supplier_id: supplier.id,
       status: "sent",
       total_amount: totalAmount,
-      expected_delivery: new Date(Date.now() + supplier.avg_delivery_days * 86400000)
-        .toISOString()
-        .slice(0, 10),
+      expected_delivery: expectedDelivery,
     })
     .select()
     .single();
@@ -86,8 +92,6 @@ export async function createReorderFromItem(
   });
 
   if (itemError) throw new Error(itemError.message);
-
-  await supabase.from("suppliers").update({ orders_count: supplier.orders_count + 1 }).eq("id", supplier.id);
 
   await logActivity(
     supabase,
