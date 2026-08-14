@@ -6,6 +6,7 @@ import type { Business, ImportedFile, InventoryItem, PurchaseOrderWithDetails, S
 import { computeStats } from "@/lib/analytics";
 import { getPaymentService } from "@/lib/subscription/paymentService";
 import { seedDemoSupplyChain } from "@/lib/demoSeed";
+import { ensureBusinessProfile } from "@/lib/registration";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -24,11 +25,22 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .single();
 
-  if (!business) {
-    return <BusinessNotFound />;
+  // Защитный fallback: обычно businesses создаётся в /auth/callback сразу
+  // после подтверждения email. Но email-клиенты и security-сканеры иногда
+  // сами открывают confirmation-ссылку раньше пользователя (тратя
+  // одноразовый PKCE code) — тогда callback либо не отработал, либо
+  // сработал без реальной сессии пользователя. Если данные регистрации
+  // всё ещё есть в user_metadata, пробуем создать профиль и здесь, прежде
+  // чем показывать "профиль не найден".
+  let typedBusiness = business as Business | null;
+  if (!typedBusiness) {
+    const created = await ensureBusinessProfile(supabase, user).catch(() => null);
+    typedBusiness = created ? ((await supabase.from("businesses").select("*").eq("id", created.id).single()).data as Business) : null;
   }
 
-  const typedBusiness = business as Business;
+  if (!typedBusiness) {
+    return <BusinessNotFound />;
+  }
 
   // Загружаем ВЕСЬ список импортированных файлов для ImportPanel
   // (раньше сюда всегда передавался initialFiles={[]}).

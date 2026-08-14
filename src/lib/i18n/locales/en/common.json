@@ -470,6 +470,7 @@
       "checkEmailTitle": "Check your email",
       "checkEmailDescription": "We sent a confirmation email to {{email}}. Follow the link in the email, then log in.",
       "goToLogin": "Go to login",
+      "genericError": "Couldn't create the business profile. Try again, or log in — we'll retry automatically.",
       "title": "Register your business",
       "subtitle": "This information helps AI give accurate recommendations for your specific business.",
       "sections": {

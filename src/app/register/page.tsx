@@ -73,11 +73,34 @@ export default function RegisterPage() {
       return;
     }
 
+    // Данные бизнеса кладём в user_metadata (options.data), а не полагаемся на
+    // локальный React state: если включено email confirmation, форма может
+    // быть закрыта задолго до перехода по ссылке подтверждения (другая вкладка,
+    // другое устройство) — к этому моменту state браузера уже недоступен.
+    // /auth/callback читает эти же метаданные, чтобы создать businesses после
+    // подтверждения (см. src/lib/registration.ts).
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
       options: {
-        data: { first_name: values.firstName, last_name: values.lastName },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          first_name: values.firstName,
+          last_name: values.lastName,
+          business_name: values.businessName,
+          business_type: values.businessType,
+          city: values.city,
+          employees_count: values.employeesCount,
+          average_check: values.averageCheck,
+          work_hours_from: values.workHoursFrom,
+          work_hours_to: values.workHoursTo,
+          peak_hours: values.peakHours,
+          main_problem: values.mainProblem,
+          clients_today: values.clientsToday,
+          clients_week: values.clientsWeek,
+          clients_month: values.clientsMonth,
+          clients_year: values.clientsYear,
+        },
       },
     });
 
@@ -88,39 +111,21 @@ export default function RegisterPage() {
     }
 
     // Если в проекте включено подтверждение email, signUp() создаёт пользователя,
-    // но НЕ выдаёт активную сессию (authData.session === null) — тогда следующий
-    // insert в businesses упадёт из-за RLS (auth.uid() ещё не установлен). Раньше
-    // код этого не проверял и просто пытался вставить бизнес, получая невнятную
-    // ошибку вместо понятного "проверьте почту".
+    // но НЕ выдаёт активную сессию (authData.session === null) — тогда businesses
+    // будет создан позже, в /auth/callback, после перехода по ссылке подтверждения.
     if (!authData.session) {
       setPendingConfirmationEmail(values.email);
       setSubmitting(false);
       return;
     }
 
-    const userId = authData.user!.id;
-
-    const { error: insertError } = await supabase.from("businesses").insert({
-      user_id: userId,
-      first_name: values.firstName,
-      last_name: values.lastName,
-      business_name: values.businessName,
-      business_type: values.businessType,
-      city: values.city,
-      employees_count: values.employeesCount,
-      average_check: values.averageCheck,
-      work_hours_from: values.workHoursFrom,
-      work_hours_to: values.workHoursTo,
-      peak_hours: values.peakHours,
-      main_problem: values.mainProblem,
-      clients_today: values.clientsToday,
-      clients_week: values.clientsWeek,
-      clients_month: values.clientsMonth,
-      clients_year: values.clientsYear,
-    });
-
-    if (insertError) {
-      setServerError(insertError.message);
+    // Email confirmation отключено — сессия уже активна, создаём профиль сразу
+    // через серверный роут (использует ту же идемпотентную логику, что и
+    // /auth/callback, вместо дублирования insert здесь).
+    const response = await fetch("/api/auth/register-business", { method: "POST" });
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      setServerError(body?.error ?? t("auth.register.genericError"));
       setSubmitting(false);
       return;
     }

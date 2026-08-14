@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import ThemeToggle from "@/components/admin/ThemeToggle";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import AuthConfirmationHandler from "@/components/AuthConfirmationHandler";
 import { BUSINESS_TYPES } from "@/lib/validation";
 
 // ---------------------------------------------------------------------------
@@ -87,6 +88,7 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
+      <AuthConfirmationHandler />
       {/* Декоративное свечение фона — в духе Vercel/Linear, завязано на акцентный цвет темы */}
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[640px] overflow-hidden">
         <div className="absolute left-1/2 top-[-220px] h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-[rgb(var(--color-accent)/0.16)] blur-[110px]" />
