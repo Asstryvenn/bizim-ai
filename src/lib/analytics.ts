@@ -5,16 +5,26 @@ import type { ParsedRow } from "@/types";
  * Никаких случайных чисел. Если данных недостаточно для метрики,
  * возвращается null, и вызывающий код обязан показать "Недостаточно данных".
  *
- * Ожидаемые (гибкие) названия колонок во входном файле, ищем без учёта
- * регистра среди типичных вариантов:
- *   дата:     date, дата, day
- *   выручка:  revenue, выручка, сумма, amount, total
- *   клиенты:  clients, клиенты, customers, count
+ * ВАЖНО (история бага): раньше "клиенты" и "количество" делили один и тот же
+ * список алиасов ("количество" считалось синонимом и для quantity, и для
+ * clients) — из-за этого файл с продажами по товарам ("Товар/Количество/
+ * Цена/Дата", без отдельной колонки клиентов) ошибочно принимал колонку
+ * "Количество" за число клиентов и суммировал дробные значения qty как
+ * "totalClients" (отсюда некруглые числа вроде 3196.299999999999). Плюс
+ * "выручка" никогда не считалась как quantity × unit_price, если в файле
+ * была только цена за единицу, а не готовая сумма — отсюда "Sales: 0 ₸".
+ * Теперь quantity/unit_price/revenue/clients — четыре независимых, не
+ * пересекающихся набора алиасов, и revenue считается тем способом, для
+ * которого реально хватает данных.
  */
 
-const DATE_KEYS = ["date", "дата", "day", "день"];
-const REVENUE_KEYS = ["revenue", "выручка", "сумма", "amount", "total", "итог"];
-const CLIENTS_KEYS = ["clients", "клиенты", "customers", "count", "количество"];
+const DATE_KEYS = ["date", "дата", "day", "день", "дата продажи", "sold_at"];
+const QUANTITY_KEYS = ["quantity", "количество", "кол-во", "qty", "штук", "продано", "sold", "units"];
+const UNIT_PRICE_KEYS = ["price", "цена", "цена за единицу", "unit_price", "unit price", "стоимость единицы"];
+const REVENUE_KEYS = ["revenue", "выручка", "сумма", "amount", "total", "итог", "стоимость", "total_amount"];
+// Строго только реальные счётчики клиентов/посетителей — никаких общих слов
+// вроде "количество"/"count", которые в разных файлах означают разное.
+const CLIENTS_KEYS = ["clients", "клиенты", "customers", "посетители", "visitors"];
 
 function findKey(row: ParsedRow, candidates: string[]): string | null {
   const keys = Object.keys(row);
@@ -52,6 +62,9 @@ export interface ComputedStats {
   hasDateColumn: boolean;
   hasRevenueColumn: boolean;
   hasClientsColumn: boolean;
+  // Как именно посчитана выручка — важно честно показать пользователю
+  // источник цифры, а не просто вывести число.
+  revenueSource: "direct_column" | "quantity_times_price" | null;
 }
 
 export function computeStats(rows: ParsedRow[]): ComputedStats {
@@ -67,6 +80,7 @@ export function computeStats(rows: ParsedRow[]): ComputedStats {
     hasDateColumn: false,
     hasRevenueColumn: false,
     hasClientsColumn: false,
+    revenueSource: null,
   };
 
   if (rows.length === 0) return empty;
@@ -74,11 +88,32 @@ export function computeStats(rows: ParsedRow[]): ComputedStats {
   const sample = rows[0];
   const dateKey = findKey(sample, DATE_KEYS);
   const revenueKey = findKey(sample, REVENUE_KEYS);
+  const quantityKey = findKey(sample, QUANTITY_KEYS);
+  const unitPriceKey = findKey(sample, UNIT_PRICE_KEYS);
   const clientsKey = findKey(sample, CLIENTS_KEYS);
 
+  // Приоритет — готовая колонка с суммой (revenueKey). Если её нет, но есть
+  // и количество, и цена за единицу — считаем выручку сами, честно помечая
+  // источник. Если нет ни того, ни другого — выручка неизвестна, а не 0.
+  const revenueSource: ComputedStats["revenueSource"] = revenueKey
+    ? "direct_column"
+    : quantityKey && unitPriceKey
+      ? "quantity_times_price"
+      : null;
+
   empty.hasDateColumn = !!dateKey;
-  empty.hasRevenueColumn = !!revenueKey;
+  empty.hasRevenueColumn = revenueSource !== null;
   empty.hasClientsColumn = !!clientsKey;
+
+  const computeRowRevenue = (row: ParsedRow): number | null => {
+    if (revenueSource === "direct_column") return toNumber(row[revenueKey!]);
+    if (revenueSource === "quantity_times_price") {
+      const qty = toNumber(row[quantityKey!]);
+      const price = toNumber(row[unitPriceKey!]);
+      return qty !== null && price !== null ? qty * price : null;
+    }
+    return null;
+  };
 
   let totalRevenue = 0;
   let totalClients = 0;
@@ -89,7 +124,7 @@ export function computeStats(rows: ParsedRow[]): ComputedStats {
   const byWeekday: Record<string, { revenue: number; clients: number }> = {};
 
   for (const row of rows) {
-    const revenue = revenueKey ? toNumber(row[revenueKey]) : null;
+    const revenue = computeRowRevenue(row);
     const clients = clientsKey ? toNumber(row[clientsKey]) : null;
 
     if (revenue !== null) {
@@ -121,11 +156,11 @@ export function computeStats(rows: ParsedRow[]): ComputedStats {
 
   const days = Object.values(byDay);
   const bestDay =
-    days.length > 0
+    days.length > 0 && revenueSource !== null
       ? days.reduce((a, b) => (b.revenue > a.revenue ? b : a))
       : null;
   const worstDay =
-    days.length > 0
+    days.length > 0 && revenueSource !== null
       ? days.reduce((a, b) => (b.revenue < a.revenue ? b : a))
       : null;
 
@@ -140,16 +175,17 @@ export function computeStats(rows: ParsedRow[]): ComputedStats {
     bestDay: bestDay ? { label: bestDay.label, revenue: bestDay.revenue } : null,
     worstDay: worstDay ? { label: worstDay.label, revenue: worstDay.revenue } : null,
     revenueByWeekday:
-      Object.keys(byWeekday).length > 0
+      Object.keys(byWeekday).length > 0 && revenueSource !== null
         ? Object.entries(byWeekday).map(([weekday, v]) => ({ weekday, revenue: v.revenue }))
         : null,
     clientsByWeekday:
-      Object.keys(byWeekday).length > 0
+      Object.keys(byWeekday).length > 0 && clientsKey
         ? Object.entries(byWeekday).map(([weekday, v]) => ({ weekday, clients: v.clients }))
         : null,
     hasDateColumn: !!dateKey,
-    hasRevenueColumn: !!revenueKey,
+    hasRevenueColumn: revenueSource !== null,
     hasClientsColumn: !!clientsKey,
+    revenueSource,
   };
 }
 

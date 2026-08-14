@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { parseFile } from "@/services/fileParser";
 import GrowthTools from "@/components/GrowthTools";
-import type { ImportedFile } from "@/types";
+import { suggestColumnMapping, FIELD_LABELS } from "@/lib/importMapping";
+import type { ImportedFile, ParsedRow } from "@/types";
 
 interface Props {
   businessId: string;
@@ -28,6 +29,12 @@ export default function ImportPanel({ businessId, initialFiles }: Props) {
   const [uploading, setUploading] = useState(false);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState<{
+    file: File;
+    type: "csv" | "xlsx" | "json";
+    rows: ParsedRow[];
+    mapping: ReturnType<typeof suggestColumnMapping>;
+  } | null>(null);
 
   // Флаг "компонент ещё смонтирован" — защита от setState после ухода со страницы
   // (например если пользователь успел уйти со страницы, пока OpenAI отвечал ~30с).
@@ -66,27 +73,44 @@ export default function ImportPanel({ businessId, initialFiles }: Props) {
     });
   }, [initialFiles]);
 
+  // Шаг 1: только читаем файл и показываем, какие колонки мы поняли — ничего
+  // не пишем в Supabase, пока пользователь явно не подтвердит (см. #3 в
+  // задании: "не импортировать молча неправильные данные").
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
-    setUploading(true);
 
     try {
       const { type, rows } = await parseFile(file);
-
       if (rows.length === 0) {
         throw new Error(t("importPanel.errors.emptyFile"));
       }
+      const mapping = suggestColumnMapping(Object.keys(rows[0]));
+      setPending({ file, type, rows, mapping });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("importPanel.errors.uploadError"));
+    } finally {
+      e.target.value = "";
+    }
+  };
 
+  // Шаг 2: пользователь посмотрел на распознанные колонки и подтвердил —
+  // теперь реально сохраняем файл.
+  const confirmImport = async () => {
+    if (!pending) return;
+    setError(null);
+    setUploading(true);
+
+    try {
       const res = await fetch("/api/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           businessId,
-          fileName: file.name,
-          fileType: type,
-          rows,
+          fileName: pending.file.name,
+          fileType: pending.type,
+          rows: pending.rows,
         }),
       });
 
@@ -97,10 +121,8 @@ export default function ImportPanel({ businessId, initialFiles }: Props) {
 
       if (!isMountedRef.current) return;
       setFiles((prev) => [data.file, ...prev]);
+      setPending(null);
 
-      // Фоновая синхронизация с сервером. UI уже обновлён локально выше и
-      // ни от чего не зависит — если refresh не удастся, пользователь всё
-      // равно увидит загруженный файл.
       try {
         router.refresh();
       } catch {
@@ -111,7 +133,6 @@ export default function ImportPanel({ businessId, initialFiles }: Props) {
       setError(err instanceof Error ? err.message : t("importPanel.errors.uploadError"));
     } finally {
       if (isMountedRef.current) setUploading(false);
-      e.target.value = "";
     }
   };
 
@@ -199,6 +220,43 @@ export default function ImportPanel({ businessId, initialFiles }: Props) {
         <p className="text-danger text-sm badge-danger rounded-lg px-4 py-3">
           {error}
         </p>
+      )}
+
+      {pending && (
+        <div className="border border-border rounded-xl p-4 space-y-3">
+          <p className="text-sm font-medium">Мы поняли следующие данные в «{pending.file.name}»:</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-ink/50 border-b border-border">
+                  <th className="py-1.5 pr-3 font-medium">Колонка файла</th>
+                  <th className="py-1.5 pr-3 font-medium">Что мы поняли</th>
+                  <th className="py-1.5 font-medium">Confidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pending.mapping.map((m) => (
+                  <tr key={m.column} className="border-b border-border last:border-0">
+                    <td className="py-1.5 pr-3 font-medium">{m.column}</td>
+                    <td className="py-1.5 pr-3 text-ink/60">
+                      {m.field ? FIELD_LABELS[m.field] : "Не удалось уверенно определить"}
+                    </td>
+                    <td className="py-1.5 text-ink/60">{m.field ? `${Math.round(m.confidence * 100)}%` : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-ink/40">{pending.rows.length} строк будет сохранено для AI-анализа.</p>
+          <div className="flex justify-end gap-3">
+            <button type="button" onClick={() => setPending(null)} className="btn-secondary text-sm">
+              Отмена
+            </button>
+            <button type="button" onClick={confirmImport} disabled={uploading} className="btn-primary text-sm">
+              {uploading ? t("importPanel.uploading") : "Импортировать"}
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="space-y-3">

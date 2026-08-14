@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import type { ComputedStats } from "@/lib/analytics";
 import { UNKNOWN_DATE_LABEL } from "@/lib/analytics";
+import { formatKzt, formatCount } from "@/lib/format";
 
 function EmptyState({ label }: { label: string }) {
   return (
@@ -73,13 +74,9 @@ export default function DashboardCharts({ stats }: { stats: ComputedStats | null
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-border">
-        <Metric label={t("dashboard.charts.totalRevenue")} value={stats.totalRevenue} suffix=" ₸" />
-        <Metric label={t("dashboard.charts.totalClients")} value={stats.totalClients} />
-        <Metric
-          label={t("dashboard.charts.averageCheckComputed")}
-          value={stats.averageCheck ? Math.round(stats.averageCheck) : null}
-          suffix=" ₸"
-        />
+        <Metric label={t("dashboard.charts.totalRevenue")} value={stats.totalRevenue} formatter={formatKzt} />
+        <Metric label={t("dashboard.charts.totalClients")} value={stats.totalClients} formatter={formatCount} />
+        <Metric label={t("dashboard.charts.averageCheckComputed")} value={stats.averageCheck} formatter={formatKzt} />
       </div>
 
       {stats.bestDay && stats.worstDay && (
@@ -87,13 +84,13 @@ export default function DashboardCharts({ stats }: { stats: ComputedStats | null
           <div>
             <p className="text-ink/40 text-xs uppercase tracking-wide">{t("dashboard.charts.bestDay")}</p>
             <p className="font-semibold mt-1 text-base">
-              {formatDayLabel(stats.bestDay.label)} — {Math.round(stats.bestDay.revenue)} ₸
+              {formatDayLabel(stats.bestDay.label)} — {formatKzt(stats.bestDay.revenue)}
             </p>
           </div>
           <div>
             <p className="text-ink/40 text-xs uppercase tracking-wide">{t("dashboard.charts.worstDay")}</p>
             <p className="font-semibold mt-1 text-base">
-              {formatDayLabel(stats.worstDay.label)} — {Math.round(stats.worstDay.revenue)} ₸
+              {formatDayLabel(stats.worstDay.label)} — {formatKzt(stats.worstDay.revenue)}
             </p>
           </div>
         </div>
@@ -105,18 +102,18 @@ export default function DashboardCharts({ stats }: { stats: ComputedStats | null
 function Metric({
   label,
   value,
-  suffix = "",
+  formatter,
 }: {
   label: string;
   value: number | null;
-  suffix?: string;
+  formatter: (value: number | null) => string;
 }) {
   const { t } = useTranslation();
   return (
     <div>
       <p className="text-ink/40 text-xs uppercase tracking-wide">{label}</p>
       <p className="text-xl font-semibold mt-1 tracking-tight">
-        {value !== null ? `${value}${suffix}` : t("dashboard.charts.notEnoughData")}
+        {value !== null ? formatter(value) : t("dashboard.charts.notEnoughData")}
       </p>
     </div>
   );

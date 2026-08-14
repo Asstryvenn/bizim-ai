@@ -28,6 +28,7 @@ import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatus
 import SupplyChainSummary from "@/components/dashboard/SupplyChainSummary";
 import type { Business, ImportedFile, InventoryItem, PurchaseOrderWithDetails, Subscription, Supplier } from "@/types";
 import type { ComputedStats } from "@/lib/analytics";
+import { formatKzt, formatCount } from "@/lib/format";
 import i18n from "@/lib/i18n";
 
 interface DashboardViewProps {
@@ -250,17 +251,19 @@ export default function DashboardView({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <div className="card">
               <p className="text-ink/50 text-sm">{t("dashboard.stats.sales")}</p>
-              <p className="text-3xl font-bold mt-3 tracking-tight">{analytics.totalRevenue ?? 0} ₸</p>
+              <p className="text-3xl font-bold mt-3 tracking-tight">{formatKzt(analytics.totalRevenue, locale === "ru-RU" ? "ru-RU" : "en-US")}</p>
             </div>
 
             <div className="card">
               <p className="text-ink/50 text-sm">{t("dashboard.stats.clients")}</p>
-              <p className="text-3xl font-bold mt-3 tracking-tight">{analytics.totalClients ?? 0}</p>
+              <p className="text-3xl font-bold mt-3 tracking-tight">
+                {analytics.totalClients !== null ? formatCount(analytics.totalClients) : t("dashboard.charts.notEnoughData")}
+              </p>
             </div>
 
             <div className="card">
               <p className="text-ink/50 text-sm">{t("dashboard.stats.averageCheck")}</p>
-              <p className="text-3xl font-bold mt-3 tracking-tight">{analytics.averageCheck ?? 0} ₸</p>
+              <p className="text-3xl font-bold mt-3 tracking-tight">{formatKzt(analytics.averageCheck, locale === "ru-RU" ? "ru-RU" : "en-US")}</p>
             </div>
 
             <div className="card">

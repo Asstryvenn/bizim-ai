@@ -1,23 +1,35 @@
-// Определение соответствия колонок файла нужным полям (товар/количество/
-// цена/дата) по списку известных синонимов. Никогда не импортируется без
-// подтверждения пользователем — это только ПРЕДЛОЖЕНИЕ маппинга с confidence,
-// которое пользователь видит и может поправить перед импортом (см.
-// ProductImportModal.tsx).
+// Определение соответствия колонок файла нужным полям по списку известных
+// синонимов. Никогда не импортируется без подтверждения пользователем — это
+// только ПРЕДЛОЖЕНИЕ маппинга с confidence, которое пользователь видит и
+// может поправить перед импортом (см. ProductImportModal.tsx).
+//
+// unit_price и revenue — намеренно РАЗНЫЕ поля (не один "price"): цена за
+// единицу товара и готовая сумма продажи — это разные вещи, и раньше их
+// смешение в одном списке алиасов приводило к тому, что колонка с уже
+// посчитанной выручкой могла быть по ошибке домножена на количество ещё раз.
 
-export type MappableField = "product" | "quantity" | "price" | "date";
+export type MappableField = "product" | "quantity" | "unit_price" | "revenue" | "date" | "customers" | "stock" | "supplier_name";
 
 export const FIELD_LABELS: Record<MappableField, string> = {
   product: "Название товара",
-  quantity: "Продажи (количество)",
-  price: "Цена",
+  quantity: "Количество (продажи)",
+  unit_price: "Цена за единицу",
+  revenue: "Выручка (готовая сумма)",
   date: "Дата",
+  customers: "Количество клиентов",
+  stock: "Остаток на складе",
+  supplier_name: "Поставщик",
 };
 
 const ALIASES: Record<MappableField, string[]> = {
-  product: ["товар", "название", "продукт", "наименование", "item", "product", "product_name", "sku_name", "name"],
-  quantity: ["количество", "кол-во", "qty", "quantity", "продажи", "sold", "sold_qty", "units"],
-  price: ["цена", "price", "сумма", "revenue", "amount", "total", "стоимость"],
-  date: ["дата", "date", "created_at", "sold_at", "день", "day"],
+  product: ["товар", "название", "продукт", "наименование", "item", "product", "product_name", "sku_name", "name", "услуга", "блюдо"],
+  quantity: ["количество", "кол-во", "qty", "quantity", "продажи", "sold", "sold_qty", "units", "штук", "продано"],
+  unit_price: ["цена", "price", "цена за единицу", "unit_price", "unit price", "стоимость единицы"],
+  revenue: ["выручка", "revenue", "сумма", "amount", "total", "итог", "total_amount", "стоимость"],
+  date: ["дата", "date", "created_at", "sold_at", "день", "day", "дата продажи"],
+  customers: ["клиенты", "customers", "clients", "посетители", "visitors"],
+  stock: ["остаток", "stock", "склад", "остаток на складе", "quantity_in_stock"],
+  supplier_name: ["поставщик", "supplier", "supplier_name", "vendor"],
 };
 
 export interface ColumnMappingSuggestion {
@@ -55,7 +67,16 @@ function matchScore(column: string, field: MappableField): number {
  * confidence, каждое поле назначается не более чем одной колонке.
  */
 export function suggestColumnMapping(columns: string[]): ColumnMappingSuggestion[] {
-  const fields: MappableField[] = ["product", "quantity", "price", "date"];
+  const fields: MappableField[] = [
+    "product",
+    "quantity",
+    "unit_price",
+    "revenue",
+    "date",
+    "customers",
+    "stock",
+    "supplier_name",
+  ];
 
   const candidates: { column: string; field: MappableField; score: number }[] = [];
   for (const column of columns) {

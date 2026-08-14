@@ -21,10 +21,19 @@ function parseDate(value: unknown): string | null {
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
 
+function findColumn(mapping: Record<string, MappableField | null>, field: MappableField): string | undefined {
+  return Object.entries(mapping).find(([, f]) => f === field)?.[0];
+}
+
 // Реальный импорт продаж по товарам: строки только валидируются и
 // нормализуются, ничего не придумывается. Товары без current_stock
-// остаются с тем, что уже было (или 0) — Excel с историей продаж не
-// говорит нам текущий остаток, поэтому он не подменяется угаданным числом.
+// остаются с тем, что уже было (или 0), если в файле нет колонки остатка —
+// Excel с историей продаж не обязан знать текущий остаток.
+//
+// unit_price и revenue — разные поля: если в файле уже есть готовая сумма
+// продажи (revenue), она используется как есть и НЕ умножается на
+// количество ещё раз; если есть только цена за единицу — выручка
+// считается как quantity × unit_price.
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -44,10 +53,12 @@ export async function POST(request: Request) {
   const body = (await request.json()) as RequestBody;
   const { rows, mapping } = body;
 
-  const productColumn = Object.entries(mapping).find(([, f]) => f === "product")?.[0];
-  const quantityColumn = Object.entries(mapping).find(([, f]) => f === "quantity")?.[0];
-  const dateColumn = Object.entries(mapping).find(([, f]) => f === "date")?.[0];
-  const priceColumn = Object.entries(mapping).find(([, f]) => f === "price")?.[0];
+  const productColumn = findColumn(mapping, "product");
+  const quantityColumn = findColumn(mapping, "quantity");
+  const dateColumn = findColumn(mapping, "date");
+  const unitPriceColumn = findColumn(mapping, "unit_price");
+  const revenueColumn = findColumn(mapping, "revenue");
+  const stockColumn = findColumn(mapping, "stock");
 
   if (!productColumn || !quantityColumn || !dateColumn) {
     return NextResponse.json(
@@ -66,7 +77,11 @@ export async function POST(request: Request) {
     itemsByName.set(item.name.trim().toLowerCase(), item);
   }
 
-  const newSalesByProductId = new Map<string, { quantity: number; unit_price: number | null; sold_at: string }[]>();
+  const newSalesByProductId = new Map<
+    string,
+    { quantity: number; unit_price: number | null; total_amount: number | null; sold_at: string }[]
+  >();
+  const stockByProductId = new Map<string, number>();
   const createdProductNames: string[] = [];
   let skippedRows = 0;
 
@@ -75,12 +90,20 @@ export async function POST(request: Request) {
     const name = typeof nameRaw === "string" ? nameRaw.trim() : nameRaw != null ? String(nameRaw).trim() : "";
     const quantity = parseNumber(row[quantityColumn]);
     const soldAt = parseDate(row[dateColumn]);
-    const price = priceColumn ? parseNumber(row[priceColumn]) : null;
+    const unitPriceRaw = unitPriceColumn ? parseNumber(row[unitPriceColumn]) : null;
+    const revenueRaw = revenueColumn ? parseNumber(row[revenueColumn]) : null;
+    const stockRaw = stockColumn ? parseNumber(row[stockColumn]) : null;
 
     if (!name || quantity === null || quantity <= 0 || !soldAt) {
       skippedRows++;
       continue;
     }
+
+    // Приоритет — готовая сумма (revenue), если она есть в файле. Цена за
+    // единицу выводится делением, а не наоборот, чтобы никогда не умножить
+    // уже готовую сумму на количество повторно.
+    const totalAmount = revenueRaw !== null ? revenueRaw : unitPriceRaw !== null ? unitPriceRaw * quantity : null;
+    const unitPrice = unitPriceRaw !== null ? unitPriceRaw : revenueRaw !== null && quantity > 0 ? revenueRaw / quantity : null;
 
     const key = name.toLowerCase();
     let item = itemsByName.get(key);
@@ -92,7 +115,7 @@ export async function POST(request: Request) {
           name,
           category: "Импорт",
           unit: "шт",
-          current_stock: 0,
+          current_stock: stockRaw ?? 0,
           min_stock: 0,
           desired_stock: 0,
           avg_daily_usage: 0,
@@ -108,8 +131,12 @@ export async function POST(request: Request) {
       createdProductNames.push(name);
     }
 
+    if (stockRaw !== null) {
+      stockByProductId.set(item.id, stockRaw);
+    }
+
     const list = newSalesByProductId.get(item.id) ?? [];
-    list.push({ quantity, unit_price: price, sold_at: soldAt });
+    list.push({ quantity, unit_price: unitPrice, total_amount: totalAmount, sold_at: soldAt });
     newSalesByProductId.set(item.id, list);
   }
 
@@ -122,7 +149,7 @@ export async function POST(request: Request) {
       product_id: productId,
       quantity: s.quantity,
       unit_price: s.unit_price,
-      total_amount: s.unit_price !== null ? s.unit_price * s.quantity : null,
+      total_amount: s.total_amount,
       sold_at: s.sold_at,
       source: "excel_import" as const,
     }));
@@ -140,20 +167,26 @@ export async function POST(request: Request) {
       .eq("product_id", productId);
 
     const item = Array.from(itemsByName.values()).find((i) => i.id === productId)!;
+    // current_stock из файла (если он был в этой партии строк) применяется
+    // как самое свежее значение — Excel с остатком, как правило, отражает
+    // состояние склада на момент выгрузки.
+    const latestStock = stockByProductId.get(productId);
+    const currentStock = latestStock !== undefined ? latestStock : item.current_stock;
+
     const metrics = computeProductMetrics((allSales as Pick<Sale, "sold_at" | "quantity">[]) ?? [], {
-      currentStock: item.current_stock,
+      currentStock,
       minStock: item.min_stock,
       desiredStock: item.desired_stock,
     });
 
-    await supabase
-      .from("inventory_items")
-      .update({
-        forecast_daily_usage: metrics.averageDailyUsage,
-        days_of_stock: metrics.daysOfStock,
-        last_purchase_at: metrics.lastSaleAt,
-      })
-      .eq("id", productId);
+    const updatePayload: Record<string, unknown> = {
+      forecast_daily_usage: metrics.averageDailyUsage,
+      days_of_stock: metrics.daysOfStock,
+      last_purchase_at: metrics.lastSaleAt,
+    };
+    if (latestStock !== undefined) updatePayload.current_stock = latestStock;
+
+    await supabase.from("inventory_items").update(updatePayload).eq("id", productId);
 
     productsSummary.push({ id: productId, name: item.name, insertedSales: payload.length });
   }
