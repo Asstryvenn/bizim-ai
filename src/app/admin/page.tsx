@@ -166,6 +166,51 @@ export default async function AdminPage() {
     90
   );
 
+  const [
+    { count: ordersCount },
+    { count: inventoryCount },
+    { count: lowStockCount },
+    { count: suppliersCount },
+    { count: activeSubscriptionsCount },
+    { count: whatsappConversationsCount },
+    { count: whatsappMessagesCount },
+    { data: recentConversations },
+  ] = await Promise.all([
+    supabase.from("purchase_orders").select("*", { count: "exact", head: true }),
+    supabase.from("inventory_items").select("*", { count: "exact", head: true }),
+    supabase.from("inventory_items").select("*", { count: "exact", head: true }).lt("current_stock", 5),
+    supabase.from("suppliers").select("*", { count: "exact", head: true }),
+    supabase.from("subscriptions").select("*", { count: "exact", head: true }).eq("status", "active"),
+    supabase.from("whatsapp_conversations").select("*", { count: "exact", head: true }),
+    supabase.from("whatsapp_messages").select("*", { count: "exact", head: true }),
+    supabase
+      .from("whatsapp_conversations")
+      .select("contact_name, customer_phone, last_message_preview, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(5),
+  ]);
+
+  const systemData = {
+    ordersCount: ordersCount ?? 0,
+    inventoryCount: inventoryCount ?? 0,
+    lowStockCount: lowStockCount ?? 0,
+    suppliersCount: suppliersCount ?? 0,
+    activeSubscriptionsCount: activeSubscriptionsCount ?? 0,
+    whatsappConversationsCount: whatsappConversationsCount ?? 0,
+    whatsappMessagesCount: whatsappMessagesCount ?? 0,
+    whatsappRecentConversations: (recentConversations ?? []).map((c: any) => ({
+      contact: c.contact_name || c.customer_phone,
+      preview: c.last_message_preview,
+      updatedAt: c.updated_at,
+    })),
+    whatsappConfigured: Boolean(process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID),
+    whatsappPhoneNumberIdSet: Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID),
+    whatsappBusinessAccountIdSet: Boolean(process.env.WHATSAPP_BUSINESS_ACCOUNT_ID),
+    aiConfigured: Boolean(process.env.OPENAI_API_KEY),
+    supabaseOk: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY),
+    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
+  };
+
   return (
     <main className="min-h-screen bg-mist">
       <AdminHeaderBar />
@@ -180,6 +225,7 @@ export default async function AdminPage() {
           topBusinesses={topBusinesses}
           registrationsSeries={registrationsSeries}
           analysesSeries={analysesSeries}
+          systemData={systemData}
         />
       </div>
     </main>

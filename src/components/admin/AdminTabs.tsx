@@ -16,8 +16,9 @@ import UsersTable from "./UsersTable";
 import BusinessesTable from "./BusinessesTable";
 import AnalysesTable from "./AnalysesTable";
 import GrowthToolsTable from "./GrowthToolsTable";
+import AdminSystemTab, { type AdminSystemData } from "./AdminSystemTab";
 
-type Tab = "overview" | "users" | "businesses" | "analyses" | "tools";
+type Tab = "overview" | "users" | "businesses" | "analyses" | "tools" | "system";
 
 const TAB_KEYS: { id: Tab; key: string }[] = [
   { id: "overview", key: "admin.tabs.overview" },
@@ -25,6 +26,7 @@ const TAB_KEYS: { id: Tab; key: string }[] = [
   { id: "businesses", key: "admin.tabs.businesses" },
   { id: "analyses", key: "admin.tabs.analyses" },
   { id: "tools", key: "admin.tabs.tools" },
+  { id: "system", key: "admin.tabs.system" },
 ];
 
 interface Props {
@@ -36,6 +38,7 @@ interface Props {
   topBusinesses: AdminTopBusiness[];
   registrationsSeries: AdminDailyPoint[];
   analysesSeries: AdminDailyPoint[];
+  systemData: AdminSystemData;
 }
 
 export default function AdminTabs({
@@ -47,6 +50,7 @@ export default function AdminTabs({
   topBusinesses,
   registrationsSeries,
   analysesSeries,
+  systemData,
 }: Props) {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("overview");
@@ -81,6 +85,7 @@ export default function AdminTabs({
       {tab === "businesses" && <BusinessesTable businesses={businesses} />}
       {tab === "analyses" && <AnalysesTable analyses={analyses} />}
       {tab === "tools" && <GrowthToolsTable tools={growthTools} />}
+      {tab === "system" && <AdminSystemTab data={systemData} />}
     </div>
   );
 }

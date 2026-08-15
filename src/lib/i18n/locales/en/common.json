@@ -625,7 +625,8 @@
       "users": "Users",
       "businesses": "Businesses",
       "analyses": "AI Analyses",
-      "tools": "Growth Tools"
+      "tools": "Growth Tools",
+      "system": "System"
     },
     "pagination": {
       "total": "Total: {{count}}",
