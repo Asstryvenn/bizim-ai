@@ -16,7 +16,7 @@ export class ForbiddenError extends Error {
   }
 }
 
-const ADMIN_EMAIL = "athenahubglobal@gmail.com"; // <-- сюда поставь свой email
+const ADMIN_EMAIL = "qwertykashabala@gmail.com"; // <-- сюда поставь свой email
 
 export async function requireAdmin(): Promise<{ user: User }> {
   const supabase = await createClient();
