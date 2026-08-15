@@ -65,6 +65,11 @@ export default function WhatsAppInbox() {
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [newChatOpen, setNewChatOpen] = useState(false);
+  const [newPhone, setNewPhone] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newMessage, setNewMessage] = useState("");
+  const [creatingChat, setCreatingChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeIdRef = useRef<string | null>(null);
   activeIdRef.current = activeId;
@@ -144,6 +149,35 @@ export default function WhatsAppInbox() {
     }
   };
 
+  const handleStartNewChat = async () => {
+    const phone = newPhone.trim();
+    const message = newMessage.trim();
+    if (!phone || !message || creatingChat) return;
+    setCreatingChat(true);
+    try {
+      const res = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, contactName: newName.trim() || undefined, message }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.sent === false) {
+        toast.error(data.error ?? "Не удалось отправить сообщение");
+        return;
+      }
+      setNewChatOpen(false);
+      setNewPhone("");
+      setNewName("");
+      setNewMessage("");
+      await loadConversations();
+      if (data.conversationId) selectConversation(data.conversationId);
+    } catch {
+      toast.error("Сетевая ошибка при отправке сообщения");
+    } finally {
+      setCreatingChat(false);
+    }
+  };
+
   const filtered = conversations.filter((c) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
@@ -154,14 +188,57 @@ export default function WhatsAppInbox() {
     <div className="flex h-full overflow-hidden rounded-2xl border border-border bg-card">
       {/* Список диалогов */}
       <div className="flex w-[320px] shrink-0 flex-col border-r border-border">
-        <div className="border-b border-border p-3">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Поиск по имени или номеру"
-            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:border-accent transition"
-          />
+        <div className="border-b border-border p-3 space-y-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Поиск по имени или номеру"
+              className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:border-accent transition"
+            />
+            <button
+              type="button"
+              onClick={() => setNewChatOpen((v) => !v)}
+              title="Новый диалог"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-white transition hover:opacity-90"
+            >
+              +
+            </button>
+          </div>
+          {newChatOpen && (
+            <div className="space-y-2 rounded-xl bg-mist p-3">
+              <input
+                type="text"
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value)}
+                placeholder="Номер телефона (+7...)"
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:border-accent transition"
+              />
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Имя (необязательно)"
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:border-accent transition"
+              />
+              <textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Первое сообщение"
+                rows={2}
+                className="w-full resize-none rounded-xl border border-border bg-card px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:border-accent transition"
+              />
+              <button
+                type="button"
+                onClick={handleStartNewChat}
+                disabled={!newPhone.trim() || !newMessage.trim() || creatingChat}
+                className="w-full rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+              >
+                {creatingChat ? "Отправка..." : "Начать диалог"}
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex-1 overflow-y-auto">
           {loadingConversations ? (

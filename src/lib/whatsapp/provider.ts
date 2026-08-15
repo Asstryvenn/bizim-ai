@@ -20,7 +20,14 @@ export function isWhatsAppConfigured(): boolean {
 // а не отправил заведомо неверный запрос.
 export function normalizePhoneForWhatsApp(phone: string | null): string | null {
   if (!phone) return null;
-  const digits = phone.replace(/[^\d]/g, "");
+  let digits = phone.replace(/[^\d]/g, "");
+  // Казахстан/Россия: местная привычка писать номер с "8" вместо кода
+  // страны "7" (8 701 234 56 78 вместо +7 701 234 56 78) — это один и тот
+  // же номер, но Meta ожидает E.164, поэтому 8XXXXXXXXXX (11 цифр,
+  // начинается с 8) честно приводим к 7XXXXXXXXXX, не угадывая для других стран.
+  if (digits.length === 11 && digits.startsWith("8")) {
+    digits = "7" + digits.slice(1);
+  }
   return digits.length >= 10 ? digits : null;
 }
 
