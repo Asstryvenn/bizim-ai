@@ -13,9 +13,11 @@ const NAV_ITEMS = [
   { href: "/dashboard/inventory", label: "Остатки", icon: "📦" },
   { href: "/dashboard/orders", label: "Заказы", icon: "🧾" },
   { href: "/dashboard/suppliers", label: "Поставщики", icon: "🚚" },
+  { href: "/dashboard/suppliers/compare", label: "Сравнение поставщиков", icon: "⚖️" },
   { href: "/dashboard/forecast", label: "Прогноз", icon: "📈" },
   { href: "/dashboard/tools", label: "Инструменты", icon: "🧰" },
   { href: "/dashboard/recommendations", label: "Рекомендации", icon: "✨" },
+  { href: "/dashboard/history", label: "История", icon: "🕘" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
