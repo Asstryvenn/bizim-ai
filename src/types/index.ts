@@ -22,6 +22,9 @@ export interface Business {
   longitude: number | null;
   phone: string | null;
   whatsapp_phone: string | null;
+  // Meta phone_number_id, привязанный к этому бизнесу — используется webhook'ом,
+  // чтобы понять, какому бизнесу принадлежит входящее WhatsApp-сообщение.
+  whatsapp_phone_number_id: string | null;
   currency: string;
   employees_count: number;
   clients_today: number;
@@ -99,6 +102,50 @@ export interface ChatConversation {
   share_id: string | null;
   shared: boolean;
   updated_at: string;
+  created_at: string;
+}
+
+// ---------- WhatsApp inbox: реальные диалоги с клиентами через Cloud API ----------
+// Отдельно от ChatConversation/ChatMessage (AI-чат) — другая семантика:
+// направление inbound/outbound, номер телефона, статусы доставки Meta.
+
+export interface WhatsAppConversation {
+  id: string;
+  business_id: string;
+  customer_phone: string;
+  contact_name: string | null;
+  whatsapp_phone_number_id: string | null;
+  last_message_at: string | null;
+  last_message_preview: string | null;
+  unread_count: number;
+  updated_at: string;
+  created_at: string;
+}
+
+export type WhatsAppMessageType =
+  | "text"
+  | "image"
+  | "audio"
+  | "document"
+  | "video"
+  | "sticker"
+  | "location"
+  | "contacts"
+  | "unknown";
+
+export type WhatsAppMessageStatus = "received" | "sent" | "delivered" | "read" | "failed";
+
+export interface WhatsAppMessage {
+  id: string;
+  conversation_id: string;
+  business_id: string;
+  wa_message_id: string | null;
+  direction: "inbound" | "outbound";
+  message_type: WhatsAppMessageType;
+  content: string | null;
+  media_id: string | null;
+  status: WhatsAppMessageStatus;
+  error: string | null;
   created_at: string;
 }
 

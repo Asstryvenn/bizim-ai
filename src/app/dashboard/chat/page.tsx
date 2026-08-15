@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "@/components/DashboardNav";
 import ChatApp from "@/components/chat/ChatApp";
@@ -62,8 +63,22 @@ export default async function ChatPage() {
         email={user.email ?? ""}
       />
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <div className="mb-3 flex gap-2">
+          <Link
+            href="/dashboard/chat"
+            className="rounded-xl bg-card px-3 py-1.5 text-sm font-medium text-ink shadow-sm"
+          >
+            AI-чат
+          </Link>
+          <Link
+            href="/dashboard/chat/whatsapp"
+            className="rounded-xl px-3 py-1.5 text-sm font-medium text-ink/50 transition hover:bg-mist hover:text-ink"
+          >
+            WhatsApp
+          </Link>
+        </div>
         <FeatureGate subscription={subscription} feature="basic_ai_analysis">
-          <div className="h-full -m-4">
+          <div className="h-[calc(100%-2.75rem)]">
             <ChatApp
               business={typedBusiness}
               userName={userName}
